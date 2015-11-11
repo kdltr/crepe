@@ -8,6 +8,8 @@
 (define white '(1 1 1 1))
 (define red '(1 0 0 1))
 (define yellow '(1 1 0 1))
+(define blue '(0 0 1 1))
+(define violet '(1 0 1 1))
 
 (define +width+ 1280)
 (define +height+ 720)
@@ -50,16 +52,17 @@
   (for-each draw-crepe board))
 
 (define (draw-crepe crepe)
-  (let ((column-number (car crepe))
-        (line-number (cadr crepe)))
-   (filled-rectangle
-    (+ (/ +column-space+ 2)
-       (- (* column-number +column-space+) 25))
-    (+ (/ +line-space+ 2)
-       (- (* line-number +line-space+) 25))
-    50
-    50
-    yellow)))
+  (let ((column-number (crepe-column crepe))
+        (line-number (crepe-line crepe))
+        (color (case (crepe-state crepe) ((descend) yellow) ((ascend) blue) ((stick) violet))))
+    (filled-rectangle
+     (+ (/ +column-space+ 2)
+        (- (* column-number +column-space+) 25))
+     (+ (/ +line-space+ 2)
+        (- (* line-number +line-space+) 25))
+     50
+     50
+     color)))
 
 (define (collect-events!)
   (let ((event (poll-event!)))
@@ -79,41 +82,29 @@
       'stay))
 
 (define (start-game)
-  (main-loop (get-ticks)
-             +initial-speed+
-             +initial-player-position+
+  (main-loop +initial-player-position+
              +initial-lives+
              +initial-score+
              +initial-board+))
 
-(define (main-loop last-drop speed player lives score board)
+(define (main-loop player lives score board)
   (clear-screen)
   (draw-player player)
   (draw-board board)
   (draw-grid)
   (font-size 16)
-  (text (- +width+ 10) 20 (sprintf "Speed: ~A  Lives: ~A  Score: ~A" speed lives score) align: #:right)
+  (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
   (show!)
   (let* ((clock (get-ticks))
          (events (collect-events!))
          (direction (get-direction (find keydown-event? events)))
-         (crepe-taken (crepe-on-player? player board))
-         (new-score (if crepe-taken (+ score 100) score))
-         (must-descend (>= (- clock last-drop) speed))
-         (new-board
-          (if must-descend
-              (cons (random-crepe)
-                    (descend-board (remove-last-crepe-at player board)))
-              (remove-last-crepe-at player board)))
-         (fallen-number (count crepe-outside-board? new-board)))
+         (new-board (move-crepes clock player board))
+         ;; (crepe-taken (crepe-on-player? player board))
+         )
     (unless (dead? lives)
-      (main-loop (if must-descend clock last-drop)
-                 (if (and crepe-taken (zero? (modulo new-score 500)))
-                     (* speed 0.90)
-                     speed)
-                 (move-player player direction)
-                 (- lives fallen-number)
-                 new-score
-                 (remove-fallen-crepes new-board)))))
+      (main-loop (move-player player direction)
+                 lives
+                 score
+                 new-board))))
 
 (start-game)
