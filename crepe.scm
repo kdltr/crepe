@@ -48,10 +48,7 @@
    +line-space+
    red))
 
-(define (draw-board board)
-  (for-each draw-crepe board))
-
-(define (draw-crepe crepe)
+(define ((draw-crepe clock) crepe)
   (let ((column-number (crepe-column crepe))
         (line-number (crepe-line crepe))
         (color (case (crepe-state crepe) ((descend) yellow) ((ascend) blue) ((stick) violet))))
@@ -59,10 +56,31 @@
      (+ (/ +column-space+ 2)
         (- (* column-number +column-space+) 25))
      (+ (/ +line-space+ 2)
-        (- (* line-number +line-space+) 25))
+        (- (* line-number +line-space+) 25)
+        (crepe-tweening crepe clock))
      50
      50
      color)))
+
+(define (crepe-tweening crepe clock)
+  (let ((state (crepe-state crepe))
+        (line (crepe-line crepe))
+        (speed (crepe-speed crepe))
+        (last-time (crepe-last-time crepe)))
+    (let ((coef (case state ((ascend) -1) ((descend) +1) ((stick) 0))))
+      (* coef
+         (/ (- clock last-time)
+            (if (eq? state 'descend) speed +ascend-speed+))
+         +line-space+))))
+
+(define (draw-game player lives score board clock)
+  (clear-screen)
+  (draw-player player)
+  (for-each (draw-crepe clock) board)
+  (draw-grid)
+  (font-size 16)
+  (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
+  (show!))
 
 (define (collect-events!)
   (let ((event (poll-event!)))
@@ -88,19 +106,13 @@
              +initial-board+))
 
 (define (main-loop player lives score board)
-  (clear-screen)
-  (draw-player player)
-  (draw-board board)
-  (draw-grid)
-  (font-size 16)
-  (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
-  (show!)
   (let* ((clock (get-ticks))
          (events (collect-events!))
          (direction (get-direction (find keydown-event? events)))
          (new-board (move-crepes clock player board))
          (lives-lost (count crepe-outside-board? new-board))
          (score-increment (compute-score board new-board)))
+    (draw-game player lives score board clock)
     (unless (dead? lives)
       (main-loop (move-player player direction)
                  (- lives lives-lost)
