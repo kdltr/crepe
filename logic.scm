@@ -13,13 +13,16 @@
 (define +initial-player-position+ 2)
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
-(define +initial-board+ (list (make-crepe column: 0 line: 0 state: 'stick speed: 250 last-time: 0)
-                              (make-crepe column: 1 line: 0 state: 'descend speed: 500 last-time: 0)
-                              (make-crepe column: 2 line: 0 state: 'descend speed: 834 last-time: 0)
-                              (make-crepe column: 3 line: 0 state: 'descend speed: 128 last-time: 0)
-                              (make-crepe column: 4 line: 0 state: 'descend speed: 1384 last-time: 0)))
+(define +initial-board+ (list (make-crepe column: 0 line: 0 state: 'stick speed: 0 last-time: 0)
+                              (make-crepe column: 1 line: 0 state: 'stick speed: 0 last-time: 0)
+                              (make-crepe column: 2 line: 0 state: 'stick speed: 0 last-time: 0)
+                              (make-crepe column: 3 line: 0 state: 'stick speed: 0 last-time: 0)
+                              (make-crepe column: 4 line: 0 state: 'stick speed: 0 last-time: 0)))
 (define +initial-speed+ 1000)
-
+(define +ascend-speed+ 500)
+(define +minimum-speed+ 900)
+(define +maximum-speed+ 300)
+(define +maximum-stick-time+ 1000)
 
 ;; Helpers
 
@@ -94,33 +97,48 @@
    speed: 1000
    last-time: 0))
 
+(define (random-speed)
+  (+ +minimum-speed+
+     (random (- +maximum-speed+ +minimum-speed+))))
+
+(define (should-fall? clock last-time)
+  (let ((duration (- clock last-time)))
+    (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+))))
+
 (define (move-crepes clock player board)
   (map
    (lambda (c) (move-crepe clock player c))
    board))
 
 (define (move-crepe clock player crepe)
-  (let* ((speed (crepe-speed crepe))
-         (last-time (crepe-last-time crepe))
-         (state (crepe-state crepe))
-         (line (crepe-line crepe))
-         (next-line (case state
-                      ((ascend) (sub1 line))
-                      ((descend) (add1 line))
-                      ((stick) line)))
-         (next-state (cond ((and (not (eq? state 'stick)) (= line 0))
-                            'descend)
-                           ((and (= line (- +lines-number+ 2))
-                                 (= player (crepe-column crepe)))
-                            'ascend)
-                           (else state))))
-    (if (>= clock (+ last-time speed))
-        (update-crepe crepe
-                      line: next-line
-                      state: state ;; next-state
-                      last-time: clock)
-        (update-crepe crepe
-                      state: next-state))))
+  (let ((speed (crepe-speed crepe))
+        (last-time (crepe-last-time crepe))
+        (state (crepe-state crepe))
+        (line (crepe-line crepe))
+        (column (crepe-column crepe)))
+    (let* ((should-fall (should-fall? clock last-time))
+           (next-state (compute-next-state state line column should-fall player))
+           (next-line (case next-state
+                        ((ascend) (sub1 line))
+                        ((descend) (add1 line))
+                        ((stick) line)))
+           (next-speed (if (eq? state 'stick) (random-speed) speed))
+           (timeout (>= clock (+ last-time (if (eq? next-state 'ascend) +ascend-speed+ next-speed)))))
+      (update-crepe crepe
+                    speed: next-speed
+                    line: (if (or timeout (and (eq? state 'stick) should-fall)) next-line line)
+                    state: next-state ;; next-state
+                    last-time: (if (or timeout (and (eq? state 'stick) should-fall)) clock last-time)))))
+
+(define (compute-next-state state line column should-fall player)
+  (cond ((and (eq? state 'stick) should-fall)
+         'descend)
+        ((and (not (eq? state 'stick)) (= line 0))
+            'stick)
+        ((and (= line (- +lines-number+ 2))
+              (= player column))
+         'ascend)
+        (else state)))
 
 (define test-column1
   '((0 1 38) (0 3 8943)))
