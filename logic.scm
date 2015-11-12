@@ -22,7 +22,7 @@
 (define +minimum-speed+ 900)
 (define +maximum-speed+ 300)
 (define +maximum-stick-time+ 1000)
-
+(define +speed-coeff+ 1)
 
 ;; Game Logic
 
@@ -42,9 +42,9 @@
 (define (remove-fallen-crepes board)
   (filter (complement crepe-outside-board?) board))
 
-(define (random-speed)
-  (+ +minimum-speed+
-     (random (- +maximum-speed+ +minimum-speed+))))
+(define (random-speed speed-interval)
+  (+ (car speed-interval)
+     (random (- (cadr speed-interval) (car speed-interval)))))
 
 (define (should-fall? clock last-time)
   (let ((duration (- clock last-time)))
@@ -72,12 +72,12 @@
              old-board
              new-board)))
 
-(define (move-crepes clock player board)
+(define (move-crepes clock player board speed-interval)
   (map
-   (lambda (c) (move-crepe clock player c))
+   (lambda (c) (move-crepe clock player c speed-interval))
    board))
 
-(define (move-crepe clock player crepe)
+(define (move-crepe clock player crepe speed-interval)
   (let ((speed (crepe-speed crepe))
         (last-time (crepe-last-time crepe))
         (state (crepe-state crepe))
@@ -89,7 +89,7 @@
                         ((ascend) (sub1 line))
                         ((descend) (add1 line))
                         ((stick) line)))
-           (next-speed (if (eq? state 'stick) (random-speed) speed))
+           (next-speed (if (eq? state 'stick) (random-speed speed-interval) speed))
            (timeout (>= clock (+ last-time (if (eq? next-state 'ascend) +ascend-speed+ next-speed)))))
       (update-crepe crepe
                     speed: next-speed
