@@ -103,13 +103,14 @@
   (main-loop +initial-player-position+
              +initial-lives+
              +initial-score+
-             +initial-board+))
+             +initial-board+
+             +initial-speed-interval+))
 
-(define (main-loop player lives score board)
+(define (main-loop player lives score board speed-interval)
   (let* ((clock (get-ticks))
          (events (collect-events!))
          (direction (get-direction (find keydown-event? events)))
-         (new-board (move-crepes clock player board))
+         (new-board (move-crepes clock player board (map (lambda (c) (- c (* 30 (quotient score 1500)))) speed-interval)))
          (lives-lost (count crepe-outside-board? new-board))
          (score-increment (compute-score board new-board)))
     (draw-game player lives score board clock)
@@ -117,7 +118,8 @@
       (main-loop (move-player player direction)
                  (- lives lives-lost)
                  (+ score score-increment)
-                 (revive-crepes new-board)))))
+                 (revive-crepes new-board)
+		 speed-interval))))
 
 (start-game)
 
