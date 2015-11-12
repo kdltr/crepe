@@ -99,12 +99,13 @@
          (events (collect-events!))
          (direction (get-direction (find keydown-event? events)))
          (new-board (move-crepes clock player board))
-         ;; (crepe-taken (crepe-on-player? player board))
-         )
+         (lives-lost (count crepe-outside-board? new-board))
+         (score-increment (compute-score board new-board)))
     (unless (dead? lives)
       (main-loop (move-player player direction)
-                 lives
-                 score
-                 new-board))))
+                 (- lives lives-lost)
+                 (+ score score-increment)
+                 (revive-crepes new-board)))))
 
 (start-game)
+
