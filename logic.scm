@@ -18,7 +18,7 @@
                               (make-crepe column: 2 line: 0 state: 'stick speed: 1 last-time: 0)
                               (make-crepe column: 3 line: 0 state: 'stick speed: 1 last-time: 0)
                               (make-crepe column: 4 line: 0 state: 'stick speed: 1 last-time: 0)))
-(define +ascend-speed+ 500)
+(define +ascend-speed+ 50)
 (define +minimum-speed+ 900)
 (define +maximum-speed+ 300)
 (define +maximum-stick-time+ 1000)

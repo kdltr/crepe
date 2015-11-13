@@ -56,7 +56,7 @@
       (filled-rectangle
        (+ (/ +column-space+ 2)
           (- (* column +column-space+) 25)
-          (if (not (eq? 'stick state))
+          (if (eq? 'descend state)
               (* (quotient +column-space+ 4) (sin (/ clock speed)))
               0))
        (+ (/ +line-space+ 2)
