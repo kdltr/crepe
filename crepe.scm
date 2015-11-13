@@ -3,6 +3,7 @@
   sdl2
   )
 
+(include "syntax")
 (include "logic")
 
 (define white '(1 1 1 1))
@@ -49,24 +50,24 @@
    red))
 
 (define ((draw-crepe clock) crepe)
-  (let ((column-number (crepe-column crepe))
-        (line-number (crepe-line crepe))
-        (color (case (crepe-state crepe) ((descend) yellow) ((ascend) blue) ((stick) violet))))
-    (filled-rectangle
-     (+ (/ +column-space+ 2)
-        (- (* column-number +column-space+) 25))
-     (+ (/ +line-space+ 2)
-        (- (* line-number +line-space+) 25)
-        (crepe-tweening crepe clock))
-     50
-     50
-     color)))
+  (with-slots crepe crepe (column line state speed)
+    (let ((color (case state ((descend) yellow) ((ascend) blue) ((stick) violet)))
+          (speed (case state ((ascend) +ascend-speed+) ((descend) speed))))
+      (filled-rectangle
+       (+ (/ +column-space+ 2)
+          (- (* column +column-space+) 25)
+          (if (not (eq? 'stick state))
+              (* (quotient +column-space+ 4) (sin (/ clock speed)))
+              0))
+       (+ (/ +line-space+ 2)
+          (- (* line +line-space+) 25)
+          (crepe-tweening crepe clock))
+       50
+       50
+       color))))
 
 (define (crepe-tweening crepe clock)
-  (let ((state (crepe-state crepe))
-        (line (crepe-line crepe))
-        (speed (crepe-speed crepe))
-        (last-time (crepe-last-time crepe)))
+  (with-slots crepe crepe (state line speed last-time)
     (let ((coef (case state ((ascend) -1) ((descend) +1) ((stick) 0))))
       (* coef
          (/ (- clock last-time)
@@ -114,12 +115,22 @@
          (lives-lost (count crepe-outside-board? new-board))
          (score-increment (compute-score board new-board)))
     (draw-game player lives score board clock)
-    (unless (dead? lives)
+    (unless (handle-repl)
       (main-loop (move-player player direction)
                  (- lives lives-lost)
                  (+ score score-increment)
                  (revive-crepes new-board)
 		 speed-interval))))
 
-(start-game)
+(define (handle-repl)
+  (if (char-ready?)
+   (let ((sexp (read)))
+     (if (eof-object? sexp)
+         #t
+         (begin
+           (write (eval sexp))
+           (newline)
+           #f)))
+   #f))
 
+(start-game)
