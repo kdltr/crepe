@@ -1,6 +1,6 @@
-;; crepes: list column-number, line-numer, state, speed, last-time
+;; crepe: list column-number, line-numer, state, speed, last-time
 ;; state: 'ascend or 'descend or 'stick
-;; board: list of 
+;; board: list of crepe
 ;; player: integer (number of the column)
 ;; lives: integer
 
@@ -19,8 +19,6 @@
                               (make-crepe column: 3 line: 0 state: 'stick speed: 1 last-time: 0)
                               (make-crepe column: 4 line: 0 state: 'stick speed: 1 last-time: 0)))
 (define +ascend-speed+ 50)
-(define +minimum-speed+ 900)
-(define +maximum-speed+ 300)
 (define +maximum-stick-time+ 1000)
 (define +initial-speed-interval+ '(900 600))
 
@@ -39,9 +37,6 @@
 
 (define (dead? lives)
   (zero? lives))
-
-(define (remove-fallen-crepes board)
-  (filter (complement crepe-outside-board?) board))
 
 (define (random-speed speed-interval)
   (+ (car speed-interval)
@@ -68,7 +63,7 @@
                      (new-state (crepe-state nc)))
                  (if (and (eq? old-state 'descend)
                           (eq? new-state 'ascend))
-                     (- +minimum-speed+ (crepe-speed oc))
+                     (- 1000 (crepe-speed oc))
                      0)))
              old-board
              new-board)))
