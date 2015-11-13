@@ -42,6 +42,28 @@
   (+ (car speed-interval)
      (random (- (cadr speed-interval) (car speed-interval)))))
 
+(define (crepe-final-time crepe)
+  (with-slots crepe crepe (speed last-time line)
+    (+ last-time
+       (* (- +lines-number+ line)
+          speed))))
+
+(define (compute-final-times board)
+  (map crepe-final-time
+       (filter (lambda (c) (not (eq? (crepe-state c) 'stick)))
+               board)))
+
+(define (outside-time-range? t1 t2)
+  (> (abs (- t1 t2)) 400))
+
+(define (pick-speed finals clock speed-interval)
+  (let* ((speed (random-speed speed-interval))
+         (time (+ clock (* +lines-number+ speed)))
+         (ok (every (lambda (t) (outside-time-range? time t)) finals)))
+    (if ok
+        speed
+        (pick-speed finals clock speed-interval))))
+
 (define (should-fall? clock last-time)
   (let ((duration (- clock last-time)))
     (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+))))
@@ -69,11 +91,12 @@
              new-board)))
 
 (define (move-crepes clock player board speed-interval)
-  (map
-   (lambda (c) (move-crepe clock player c speed-interval))
-   board))
+  (let ((final-times (compute-final-times board)))
+    (map
+     (lambda (c) (move-crepe clock player c speed-interval final-times))
+     board)))
 
-(define (move-crepe clock player crepe speed-interval)
+(define (move-crepe clock player crepe speed-interval final-times)
   (with-slots crepe crepe (speed last-time state line column)
     (let* ((should-fall (should-fall? clock last-time))
            (next-state (compute-next-state state line column should-fall player))
@@ -81,7 +104,9 @@
                         ((ascend) (sub1 line))
                         ((descend) (add1 line))
                         ((stick) line)))
-           (next-speed (if (eq? state 'stick) (random-speed speed-interval) speed))
+           (next-speed (if (and (eq? state 'stick) (eq? next-state 'descend))
+                           (pick-speed final-times clock speed-interval)
+                           speed))
            (timeout (>= clock (+ last-time (if (eq? next-state 'ascend) +ascend-speed+ next-speed)))))
       (update-crepe crepe
                     speed: next-speed
@@ -100,12 +125,10 @@
         (else state)))
 
 (define (sub-speed-interval speed-interval score)
-  (cons
+  (list
    (if (> (car speed-interval) 300)
-       (if (< (* 15 (quotient score 1500)) 600)
+       (if (< (* 30 (quotient score 1500)) 600)
 	   (- (car speed-interval) (* 15 (quotient score 1500))) 300) 300)
-   (cons
-    (if (> (cadr speed-interval) 100)
-	(if (< (* 15 (quotient score 1500)) 500)
-	    (- (cadr speed-interval) (* 15 (quotient score 1500))) 100) 100)
-    '())))
+   (if (> (cadr speed-interval) 100)
+       (if (< (* 30 (quotient score 1500)) 500)
+           (- (cadr speed-interval) (* 15 (quotient score 1500))) 100) 100)))
