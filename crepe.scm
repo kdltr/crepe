@@ -110,7 +110,7 @@
   (let* ((clock (get-ticks))
          (events (collect-events!))
          (direction (get-direction (find keydown-event? events)))
-         (new-board (move-crepes clock player board (map (lambda (c) (- c (* 30 (quotient score 1500)))) speed-interval)))
+         (new-board (move-crepes clock player board (sub-speed-interval speed-interval score)))
          (lives-lost (count crepe-outside-board? new-board))
          (score-increment (compute-score board new-board)))
     (draw-game player lives score board clock)

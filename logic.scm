@@ -22,10 +22,10 @@
 (define +minimum-speed+ 900)
 (define +maximum-speed+ 300)
 (define +maximum-stick-time+ 1000)
-(define +initial-speed-interval+ '(900 300))
+(define +initial-speed-interval+ '(900 600))
 
 
-;; Game Logic
+;; game logic
 
 (define (move-player player direction)
   (let* ((increment (case direction ((left) -1) ((right) +1) ((stay) 0)))
@@ -107,3 +107,14 @@
               (= player column))
          'ascend)
         (else state)))
+
+(define (sub-speed-interval speed-interval score)
+  (cons
+   (if (> (car speed-interval) 300)
+       (if (< (* 15 (quotient score 1500)) 600)
+	   (- (car speed-interval) (* 15 (quotient score 1500))) 300) 300)
+   (cons
+    (if (> (cadr speed-interval) 100)
+	(if (< (* 15 (quotient score 1500)) 500)
+	    (- (cadr speed-interval) (* 15 (quotient score 1500))) 100) 100)
+    '())))
