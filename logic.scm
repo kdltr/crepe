@@ -22,7 +22,7 @@
 (define +minimum-speed+ 900)
 (define +maximum-speed+ 300)
 (define +maximum-stick-time+ 1000)
-(define +initial-speed-interval+ '(900 300))
+(define +initial-speed-interval+ '(100 100))
 
 
 ;; Game Logic
@@ -79,11 +79,7 @@
    board))
 
 (define (move-crepe clock player crepe speed-interval)
-  (let ((speed (crepe-speed crepe))
-        (last-time (crepe-last-time crepe))
-        (state (crepe-state crepe))
-        (line (crepe-line crepe))
-        (column (crepe-column crepe)))
+  (with-slots crepe crepe (speed last-time state line column)
     (let* ((should-fall (should-fall? clock last-time))
            (next-state (compute-next-state state line column should-fall player))
            (next-line (case next-state
