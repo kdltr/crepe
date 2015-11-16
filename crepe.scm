@@ -1,8 +1,8 @@
 (use
   cairo-utils
   sdl2
-  sdl2-image
-)
+  (prefix sdl2-image img:)
+  )
 
 (include "syntax")
 (include "logic")
@@ -20,10 +20,10 @@
 
 (init!)
 
-(define crepe-down-surface (load "graph/down.png"))
-(define crepe-up-surface (load "graph/up.png"))
-(define crepe-left-surface (load "graph/left.png"))
-(define crepe-right-surface (load "graph/right.png"))
+(define crepe-down-surface (img:load "graph/down.png"))
+(define crepe-up-surface (img:load "graph/up.png"))
+(define crepe-left-surface (img:load "graph/left.png"))
+(define crepe-right-surface (img:load "graph/right.png"))
 
 (assert crepe-down-surface)
 (assert crepe-up-surface)
