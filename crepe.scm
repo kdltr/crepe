@@ -8,6 +8,7 @@
 (include "logic")
 
 (define white '(1 1 1 1))
+(define black '(0 0 0 1))
 (define red '(1 0 0 1))
 (define yellow '(1 1 0 1))
 (define blue '(0 0 1 1))
@@ -19,11 +20,13 @@
 (define +line-space+ (quotient +height+ +lines-number+))
 
 (init!)
+(assert (member 'png (img:init! '(png))))
 
 (define crepe-down-surface (img:load "graph/down.png"))
 (define crepe-up-surface (img:load "graph/up.png"))
 (define crepe-left-surface (img:load "graph/left.png"))
 (define crepe-right-surface (img:load "graph/right.png"))
+(define background-surface (img:load "graph/background.png"))
 
 (assert crepe-down-surface)
 (assert crepe-up-surface)
@@ -53,20 +56,22 @@
       (loop (+ x +column-space+)))))
 
 (define (draw-player player)
-  (filled-rectangle
-   (* player +column-space+)
-   (* (sub1 +lines-number+) +line-space+)
-   +column-space+
-   +line-space+
-   red))
+  (let ((w 120)
+        (h 300))
+   (filled-rectangle
+    (+ (* player +column-space+) (/ w 2))
+    (- (* (sub1 +lines-number+) +line-space+) (/ h 2))
+    w h
+    ;; +column-space+ +line-space+
+    red)))
 
 (define (get-crepe-surface crepe clock)
   (with-slots crepe crepe (column line state speed)
-	      (case state ((ascend) crepe-up-surface) (else
-						       (cond
-							((< (sin (/ clock speed)) -0.4) crepe-left-surface)
-							((and (> (sin (/ clock speed)) -0.4) (< (sin (/ clock speed)) 0.4)) crepe-down-surface)
-							((> (sin (/ clock speed)) 0.4) crepe-right-surface))))))
+    (cond
+     ((eq? state 'ascend) crepe-up-surface)
+     ((< (sin (/ clock speed)) -0.4) crepe-left-surface)
+     ((and (> (sin (/ clock speed)) -0.4) (< (sin (/ clock speed)) 0.4)) crepe-down-surface)
+     ((> (sin (/ clock speed)) 0.4) crepe-right-surface))))
 
 (define ((draw-crepe clock) crepe)
   (with-slots crepe crepe (column line state speed)
@@ -99,11 +104,12 @@
          +line-space+))))
 
 (define (draw-game player lives score board clock)
-  (clear-screen)
+  (blit-surface! background-surface #f win-surface #f)
   (draw-player player)
   (for-each (draw-crepe clock) board)
-  (draw-grid)
+  ;; (draw-grid)
   (font-size 16)
+  (font-color black)
   (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
   (show!))
 
