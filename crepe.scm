@@ -2,7 +2,7 @@
   cairo-utils
   sdl2
   sdl2-image
-  )
+)
 
 (include "syntax")
 (include "logic")
@@ -22,6 +22,8 @@
 
 (define crepe-down-surface (load "graph/down.png"))
 (define crepe-up-surface (load "graph/up.png"))
+(define crepe-left-surface (load "graph/left.png"))
+(define crepe-right-surface (load "graph/right.png"))
 
 (assert crepe-down-surface)
 (assert crepe-up-surface)
@@ -58,11 +60,20 @@
    +line-space+
    red))
 
+(define (get-crepe-surface crepe clock)
+  (with-slots crepe crepe (column line state speed)
+	      (case state ((ascend) crepe-up-surface) (else
+						       (cond
+							((< (sin (/ clock speed)) -0.4) crepe-left-surface)
+							((and (> (sin (/ clock speed)) -0.4) (< (sin (/ clock speed)) 0.4)) crepe-down-surface)
+							((> (sin (/ clock speed)) 0.4) crepe-right-surface))))))
+
 (define ((draw-crepe clock) crepe)
   (with-slots crepe crepe (column line state speed)
-    (let ((color (case state ((descend) yellow) ((ascend) blue) ((stick) violet)))
-          (speed (case state ((ascend) +ascend-speed+) ((descend) speed)))
-          (surface (case state ((ascend) crepe-up-surface) (else crepe-down-surface))))
+    (let* ((color (case state ((descend) yellow) ((ascend) blue) ((stick) violet)))
+	   (speed (case state ((ascend) +ascend-speed+) (else speed)))
+	   (x (* (quotient +column-space+ 4) (sin (/ clock speed))))
+	   (surface (get-crepe-surface crepe clock)))
       (blit-surface!
        surface
        #f
@@ -72,7 +83,7 @@
          (+ (/ +column-space+ 2)
             (- (* column +column-space+) (/ (surface-w surface) 2))
             (if (eq? 'descend state)
-                (* (quotient +column-space+ 4) (sin (/ clock speed)))
+                x
                 0)))
         (round
          (+ (/ +line-space+ 2)
