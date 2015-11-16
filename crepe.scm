@@ -1,6 +1,7 @@
 (use
   cairo-utils
   sdl2
+  sdl2-image
   )
 
 (include "syntax")
@@ -19,9 +20,17 @@
 
 (init!)
 
+(define crepe-down-surface (load "graph/down.png"))
+(define crepe-up-surface (load "graph/up.png"))
+
+(assert crepe-down-surface)
+(assert crepe-up-surface)
+
 (define win (create-window! "Crepes-party-hard-yolo-swag 2015"
                             'undefined 'undefined
                             +width+ +height+))
+
+(define win-surface (window-surface win))
 
 (init-utils! win)
 
@@ -52,19 +61,23 @@
 (define ((draw-crepe clock) crepe)
   (with-slots crepe crepe (column line state speed)
     (let ((color (case state ((descend) yellow) ((ascend) blue) ((stick) violet)))
-          (speed (case state ((ascend) +ascend-speed+) ((descend) speed))))
-      (filled-rectangle
-       (+ (/ +column-space+ 2)
-          (- (* column +column-space+) 25)
-          (if (eq? 'descend state)
-              (* (quotient +column-space+ 4) (sin (/ clock speed)))
-              0))
-       (+ (/ +line-space+ 2)
-          (- (* line +line-space+) 25)
-          (crepe-tweening crepe clock))
-       50
-       50
-       color))))
+          (speed (case state ((ascend) +ascend-speed+) ((descend) speed)))
+          (surface (case state ((ascend) crepe-up-surface) (else crepe-down-surface))))
+      (blit-surface!
+       surface
+       #f
+       win-surface
+       (make-rect
+        (round
+         (+ (/ +column-space+ 2)
+            (- (* column +column-space+) (/ (surface-w surface) 2))
+            (if (eq? 'descend state)
+                (* (quotient +column-space+ 4) (sin (/ clock speed)))
+                0)))
+        (round
+         (+ (/ +line-space+ 2)
+            (- (* line +line-space+) (/ (surface-h surface) 2))
+            (crepe-tweening crepe clock))))))))
 
 (define (crepe-tweening crepe clock)
   (with-slots crepe crepe (state line speed last-time)
