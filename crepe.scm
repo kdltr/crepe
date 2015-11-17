@@ -26,10 +26,15 @@
 (define crepe-up-surface (img:load "graph/up.png"))
 (define crepe-left-surface (img:load "graph/left.png"))
 (define crepe-right-surface (img:load "graph/right.png"))
+(define crepe-stick-surface (img:load "graph/sticky-full.pngxb"))
 (define background-surface (img:load "graph/background.png"))
 
-(assert crepe-down-surface)
-(assert crepe-up-surface)
+(assert (and crepe-down-surface
+             crepe-up-surface
+             crepe-left-surface
+             crepe-right-surface
+             crepe-stick-surface
+             background-surface))
 
 (define win (create-window! "Crepes-party-hard-yolo-swag 2015"
                             'undefined 'undefined
@@ -69,6 +74,7 @@
   (with-slots crepe crepe (column line state speed)
     (cond
      ((eq? state 'ascend) crepe-up-surface)
+     ((eq? state 'stick) crepe-stick-surface)
      ((< (sin (/ clock speed)) -0.4) crepe-left-surface)
      ((and (> (sin (/ clock speed)) -0.4) (< (sin (/ clock speed)) 0.4)) crepe-down-surface)
      ((> (sin (/ clock speed)) 0.4) crepe-right-surface))))
