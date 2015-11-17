@@ -1,5 +1,5 @@
-;; crepe: list column-number, line-numer, state, speed, last-time
-;; state: 'ascend or 'descend or 'stick
+;; crepe: list column-number, state
+;; state: 'ascend time or 'descend speed time or 'stick
 ;; board: list of crepe
 ;; player: integer (number of the column)
 ;; lives: integer
@@ -8,20 +8,31 @@
 
 (defstruct crepe column line state speed last-time)
 
+(defstruct ascend-state time)
+(defstruct descend-state speed time)
+(defstruct stick-state)
+
 (define +columns-number+ 5)
 (define +lines-number+ 10)
+
+(define +highest-point+ 88)
+(define +lowest-point+ 720)
+
 (define +initial-player-position+ 2)
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
-(define +initial-board+ (list (make-crepe column: 0 line: 0 state: 'stick speed: 1 last-time: 0)
-                              (make-crepe column: 1 line: 0 state: 'stick speed: 1 last-time: 0)
-                              (make-crepe column: 2 line: 0 state: 'stick speed: 1 last-time: 0)
-                              (make-crepe column: 3 line: 0 state: 'stick speed: 1 last-time: 0)
-                              (make-crepe column: 4 line: 0 state: 'stick speed: 1 last-time: 0)))
-(define +ascend-speed+ 50)
-(define +maximum-stick-time+ 1000)
-(define +initial-speed-interval+ '(900 600))
+(define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state))
+                              (make-crepe column: 1 state: (make-stick-state))
+                              (make-crepe column: 2 state: (make-stick-state))
+                              (make-crepe column: 3 state: (make-stick-state))
+                              (make-crepe column: 4 state: (make-stick-state))))
 
+(define +ascend-speed+ 1000)
+(define +maximum-stick-time+ 1000)
+
+(define +initial-max-speed+ 1700)
+(define +initial-min-speed+ 2000)
+(define +maximum-speed+ 400)
 
 ;; game logic
 
@@ -32,49 +43,48 @@
         player
         np)))
 
-(define (crepe-outside-board? crepe)
-  (>= (crepe-line crepe) +lines-number+))
+(define (height clock state)
+  (match state
+    (($ stick-state)
+     0)
+    (($ ascend-state time)
+     (- 1 (/ (- clock time) +ascend-speed+)))
+    (($ descend-state speed time)
+     (/ (- clock time) speed))))
+
+(define (final-time state)
+  (+ (descend-state-time state)
+     (descend-state-speed state)))
+
+(define (outside-board? clock crepe)
+  (let ((state (crepe-state crepe)))
+    (and (descend-state? state)
+         (>= clock
+             (+ 500 (final-time state))))))
 
 (define (dead? lives)
   (zero? lives))
 
-(define (random-speed speed-interval)
-  (+ (car speed-interval)
-     (random (- (cadr speed-interval) (car speed-interval)))))
+(define (random-speed score)
+  (let* ((coef (/ score 100))
+         (min-speed (- +initial-min-speed+ coef))
+         (max-speed (- +initial-max-speed+ coef)))
+    (inexact->exact
+     (round (+ (max +maximum-speed+ min-speed)
+               (random (inexact->exact (round (- min-speed max-speed)))))))))
 
-(define (crepe-final-time crepe)
-  (with-slots crepe crepe (speed last-time line)
-    (+ last-time
-       (* (- +lines-number+ line)
-          speed))))
+(define (within-catch-range? clock time speed)
+  (let ((height (/ (- clock time) speed)))
+    (> 1 height 0.8)))
 
-(define (compute-final-times board)
-  (map crepe-final-time
-       (filter (lambda (c) (not (eq? (crepe-state c) 'stick)))
-               board)))
+(define (should-fall?)
+  (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+)))
 
-(define (outside-time-range? t1 t2)
-  (> (abs (- t1 t2)) 400))
-
-(define (pick-speed finals clock speed-interval)
-  (let* ((speed (random-speed speed-interval))
-         (time (+ clock (* +lines-number+ speed)))
-         (ok (every (lambda (t) (outside-time-range? time t)) finals)))
-    (if ok
-        speed
-        (pick-speed finals clock speed-interval))))
-
-(define (should-fall? clock last-time)
-  (let ((duration (- clock last-time)))
-    (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+))))
-
-(define (revive-crepes board)
+(define (revive-crepes clock board)
   (map
    (lambda (c)
-     (if (crepe-outside-board? c)
-         (update-crepe c
-                       line: 0
-                       state: 'stick)
+     (if (outside-board? clock c)
+         (update-crepe c state: (make-stick-state))
          c))
    board))
 
@@ -83,52 +93,9 @@
              (lambda (oc nc)
                (let ((old-state (crepe-state oc))
                      (new-state (crepe-state nc)))
-                 (if (and (eq? old-state 'descend)
-                          (eq? new-state 'ascend))
-                     (- 1000 (crepe-speed oc))
+                 (if (and (descend-state? old-state)
+                          (ascend-state? new-state))
+                     (- 2500 (descend-state-speed old-state))
                      0)))
              old-board
              new-board)))
-
-(define (move-crepes clock player board speed-interval)
-  (let ((final-times (compute-final-times board)))
-    (map
-     (lambda (c) (move-crepe clock player c speed-interval final-times))
-     board)))
-
-(define (move-crepe clock player crepe speed-interval final-times)
-  (with-slots crepe crepe (speed last-time state line column)
-    (let* ((should-fall (should-fall? clock last-time))
-           (next-state (compute-next-state state line column should-fall player))
-           (next-line (case next-state
-                        ((ascend) (sub1 line))
-                        ((descend) (add1 line))
-                        ((stick) line)))
-           (next-speed (if (and (eq? state 'stick) (eq? next-state 'descend))
-                           (pick-speed final-times clock speed-interval)
-                           speed))
-           (timeout (>= clock (+ last-time (if (eq? next-state 'ascend) +ascend-speed+ next-speed)))))
-      (update-crepe crepe
-                    speed: next-speed
-                    line: (if (or timeout (and (eq? state 'stick) should-fall)) next-line line)
-                    state: next-state ;; next-state
-                    last-time: (if (or timeout (and (eq? state 'stick) should-fall)) clock last-time)))))
-
-(define (compute-next-state state line column should-fall player)
-  (cond ((and (eq? state 'stick) should-fall)
-         'descend)
-        ((and (not (eq? state 'stick)) (= line 0))
-            'stick)
-        ((and (= line (- +lines-number+ 2))
-              (= player column))
-         'ascend)
-        (else state)))
-
-(define (sub-speed-interval speed-interval score)
-  (list
-   (if (> (car speed-interval) 300)
-       (if (< (* 30 (quotient score 1500)) 600)
-	   (- (car speed-interval) (* 15 (quotient score 1500))) 300) 300)
-   (if (> (cadr speed-interval) 100)
-       (if (< (* 30 (quotient score 1500)) 500)
-           (- (cadr speed-interval) (* 15 (quotient score 1500))) 100) 100)))
