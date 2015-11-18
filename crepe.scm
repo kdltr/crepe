@@ -52,8 +52,8 @@
   (match state
     (($ ascend-state)
      crepe-up-surface)
-    (($ stick-state)
-     crepe-stick-surface)
+    (($ stick-state unstick)
+     (if unstick crepe-unstick-surface crepe-stick-surface))
     (($ descend-state speed time)
      (cond
       ((< wiggle -0.4) crepe-left-surface)
@@ -133,7 +133,8 @@
     (update-crepe
      crepe
      state: (cond
-             ((and (stick-state? state) (should-fall?))
+	     ((and (stick-state? state) (should-fall?)) (update-stick-state state unstick: #t time: clock))
+             ((and (stick-state? state) (stick-state-unstick state) (>= clock (+ (stick-state-time state) 1000)))
               (make-descend-state time: clock speed: (random-speed score)))
              ((and (ascend-state? state) (>= clock (+ (ascend-state-time state) +ascend-speed+)))
               (make-stick-state))

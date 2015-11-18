@@ -10,7 +10,7 @@
 
 (defstruct ascend-state time)
 (defstruct descend-state speed time)
-(defstruct stick-state)
+(defstruct stick-state unstick time)
 
 (define +columns-number+ 5)
 (define +lines-number+ 10)
@@ -21,11 +21,11 @@
 (define +initial-player-position+ 2)
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
-(define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state))
-                              (make-crepe column: 1 state: (make-stick-state))
-                              (make-crepe column: 2 state: (make-stick-state))
-                              (make-crepe column: 3 state: (make-stick-state))
-                              (make-crepe column: 4 state: (make-stick-state))))
+(define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state #f))
+                              (make-crepe column: 1 state: (make-stick-state #f))
+                              (make-crepe column: 2 state: (make-stick-state #f))
+                              (make-crepe column: 3 state: (make-stick-state #f))
+                              (make-crepe column: 4 state: (make-stick-state #f))))
 
 (define +ascend-speed+ 1000)
 (define +maximum-stick-time+ 1000)
@@ -84,7 +84,7 @@
   (map
    (lambda (c)
      (if (outside-board? clock c)
-         (update-crepe c state: (make-stick-state))
+         (update-crepe c state: (make-stick-state #f))
          c))
    board))
 
