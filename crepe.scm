@@ -47,17 +47,23 @@
 
 (define win-surface (window-surface win))
 
+(define screen-blit!
+  (let ((rect (make-rect)))
+    (lambda (surface x y)
+      (set! (rect-x rect) x)
+      (set! (rect-y rect) y)
+      (blit-surface! surface #f win-surface rect))))
+
 ;(init-utils! win)
 
-(define (draw-player player)
-  (let ((w 120)
-        (h 300))
-    (fill-rect! win-surface
-                (make-rect (+ (* player +column-space+) (/ w 2))
-                           (- (* (sub1 +lines-number+) +line-space+) (/ h 2))
-                           w
-                           h)
-                red)))
+(define draw-player
+  (let* ((w 120)
+         (h 300)
+         (rect (make-rect 0 0 w h)))
+    (lambda (player)
+      (set! (rect-x rect) (+ (* player +column-space+) (/ w 2)))
+      (set! (rect-y rect) (- (* (sub1 +lines-number+) +line-space+) (/ h 2)))
+      (fill-rect! win-surface rect red))))
 
 (define (crepe-surface state wiggle)
   (match state
@@ -77,17 +83,14 @@
          (speed (match state (($ descend-state speed) speed) (else +ascend-speed+)))
          (wiggle (sin (/ clock (/ speed 9))))
          (surface (crepe-surface state wiggle)))
-    (blit-surface!
+    (screen-blit!
      surface
-     #f
-     win-surface
-     (make-rect
-      (round
-       (+ (/ +column-space+ 2)
-          (- (* column +column-space+) (/ (surface-w surface) 2))
-          (if (descend-state? state) (* (quotient +column-space+ 4) wiggle) 0)))
-      (round
-       (crepe-y state clock))))))
+     (round
+      (+ (/ +column-space+ 2)
+         (- (* column +column-space+) (/ (surface-w surface) 2))
+         (if (descend-state? state) (* (quotient +column-space+ 4) wiggle) 0)))
+     (round
+      (crepe-y state clock)))))
 
 (define (crepe-y state clock)
   (+ +highest-point+
@@ -105,22 +108,19 @@
   ;(show!)
   )
 
-(define (collect-events!)
-  (let ((event (poll-event!)))
-    (if event
-        (cons event (collect-events!))
-        '())))
+(define get-direction!
+  (let ((event (make-event)))
+    (lambda ()
+      (cond ((and (poll-event! event) (keydown-event? event))
+             (case (keyboard-event-scancode event)
+               ((left) (flush-events!) 'left)
+               ((right) (flush-events!) 'right)
+               (else (get-direction!))))
+            (else 'stay)))))
 
 (define (keydown-event? ev)
   (eq? (event-type ev) 'key-down))
 
-(define (get-direction event)
-  (if event
-      (case (keyboard-event-scancode event)
-        ((left) 'left)
-        ((right) 'right)
-        (else 'stay))
-      'stay))
 
 (define (start-game)
   (main-loop +initial-player-position+
@@ -130,7 +130,7 @@
 
 (define (main-loop player lives score board)
   (let* ((clock (get-ticks))
-         (new-player (move-player player (get-direction (find keydown-event? (collect-events!)))))
+         (new-player (move-player player (get-direction!)))
          (new-board (map (compute-crepe clock new-player score (final-times board)) board))
          (score-increment (compute-score board new-board))
          (lives-lost (count (lambda (c) (outside-board? clock c)) new-board)))
