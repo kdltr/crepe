@@ -1,6 +1,6 @@
 DEPS = libs/defstruct.o libs/matchable.o libs/sdl2.o libs/sdl2-internals.o libs/sdl2-image.o
 
-CSCFLAGS = -v -static-libs
+CSCFLAGS = -O3 -d0 -disable-interrupts
 
 SDLCFLAGS != sdl2-config --cflags
 SDLLDFLAGS != sdl2-config --libs
@@ -9,7 +9,7 @@ CFLAGS = ${SDLCFLAGS}
 LDFLAGS = ${SDLLDFLAGS} -lSDL2_image
 
 crepe: crepe.scm game.scm menu.scm logic.scm ${DEPS}
-	csc crepe.scm ${CSCFLAGS} -strip -uses sdl2 -uses sdl2-image -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
+	csc crepe.scm -static-libs -O5 -strip -uses sdl2 -uses sdl2-image -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
 
 libs/defstruct.o: libs/defstruct.scm
 	csc $< ${CSCFLAGS} -c -J -unit defstruct -o $@
@@ -17,7 +17,7 @@ libs/defstruct.o: libs/defstruct.scm
 libs/matchable.o: libs/matchable.scm
 	csc $< ${CSCFLAGS} -c -J -unit matchable -o $@
 
-libs/sdl2.o: libs/chicken-sdl2/sdl2.scm
+libs/sdl2.o: libs/chicken-sdl2/sdl2.scm libs/sdl2-internals.o
 	${MAKE} -C libs/chicken-sdl2/ CSCFLAGS="${CSCFLAGS}" sdl2.o
 	mv libs/chicken-sdl2/sdl2.o libs/chicken-sdl2/sdl2.import.scm libs/
 
