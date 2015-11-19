@@ -28,11 +28,11 @@
                               (make-crepe column: 4 state: (make-stick-state #f))))
 
 (define +ascend-speed+ 1000)
-(define +maximum-stick-time+ 1000)
+(define +maximum-stick-time+ 500)
 
 (define +initial-max-speed+ 1700)
 (define +initial-min-speed+ 2000)
-(define +maximum-speed+ 400)
+(define +maximum-speed+ 300)
 
 ;; game logic
 
@@ -53,8 +53,13 @@
      (/ (- clock time) speed))))
 
 (define (final-time state)
-  (+ (descend-state-time state)
-     (descend-state-speed state)))
+  (if (descend-state? state)
+      (+ (descend-state-time state)
+         (descend-state-speed state))
+      0))
+
+(define (final-times board)
+  (map (o final-time crepe-state) board))
 
 (define (outside-board? clock crepe)
   (let ((state (crepe-state crepe)))
@@ -65,13 +70,22 @@
 (define (dead? lives)
   (zero? lives))
 
-(define (random-speed score)
-  (let* ((coef (/ score 100))
+(define (random-speed times clock score)
+  (let* ((coef (/ score 50))
          (min-speed (- +initial-min-speed+ coef))
-         (max-speed (- +initial-max-speed+ coef)))
-    (inexact->exact
-     (round (+ (max +maximum-speed+ min-speed)
-               (random (inexact->exact (round (- min-speed max-speed)))))))))
+         (max-speed (- +initial-max-speed+ coef))
+         (speed (inexact->exact
+                 (round (+ (max +maximum-speed+ min-speed)
+                           (random (inexact->exact (round (- min-speed max-speed)))))))))
+    (let loop ((speed speed)
+               (time (+ clock speed))
+               (times times))
+      (if (null? times)
+          speed
+          (let* ((t1 (car times)))
+            (if (> (+ t1 300) time (- t1 300))
+                (loop (+ speed 300) (+ clock speed 300) (cdr times))
+                (loop speed time (cdr times))))))))
 
 (define (within-catch-range? clock time speed)
   (let ((height (/ (- clock time) speed)))
