@@ -4,8 +4,6 @@
 ;; player: integer (number of the column)
 ;; lives: integer
 
-(use srfi-1 defstruct)
-
 (defstruct crepe column line state speed last-time)
 
 (defstruct ascend-state time)
