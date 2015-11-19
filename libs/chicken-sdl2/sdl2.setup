@@ -46,4 +46,4 @@
                            '())))
               modules))
 
-;(install-extension 'sdl2 products `((version ,version)))
+(install-extension 'sdl2 products `((version ,version)))
