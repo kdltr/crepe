@@ -1,0 +1,2 @@
+(repo git "https://gitlab.com/chicken-sdl2/chicken-sdl2.git")
+(uri targz "https://gitlab.com/chicken-sdl2/chicken-sdl2/repository/archive.tar.gz?ref={egg-release}")

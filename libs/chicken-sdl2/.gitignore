@@ -1,0 +1,12 @@
+*.import.scm
+*.types
+*.c
+*.o
+*.so
+
+/demos/basics
+/demos/basics.app
+/demos/basics.exe
+/demos/basics-raw
+/demos/basics-raw.app
+/demos/basics-raw.exe
