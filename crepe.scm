@@ -33,21 +33,24 @@
          (lambda ()
            (string->blob (read-string))))))))
 
-(define crepe-down-surface (assert (load-img (file-blob "graph/down.png"))))
-(define crepe-up-surface (assert (load-img (file-blob "graph/up.png"))))
-(define crepe-left-surface (assert (load-img (file-blob "graph/left.png"))))
-(define crepe-right-surface (assert (load-img (file-blob "graph/right.png"))))
-(define crepe-stick-surface (assert (load-img (file-blob "graph/sticky-full.png"))))
-(define crepe-unstick-surface (assert (load-img (file-blob "graph/unstick.png"))))
-(define background-surface (assert (load-img (file-blob "graph/background.png"))))
+(define crepe-down-surface (load-img (file-blob "graph/down.png")))
+(define crepe-up-surface (load-img (file-blob "graph/up.png")))
+(define crepe-left-surface (load-img (file-blob "graph/left.png")))
+(define crepe-right-surface (load-img (file-blob "graph/right.png")))
+(define crepe-stick-surface (load-img (file-blob "graph/sticky-full.png")))
+(define crepe-unstick-surface (load-img (file-blob "graph/unstick.png")))
+
+(define background-surface (load-img (file-blob "graph/background.png")))
+(define font-surface (load-img (file-blob "graph/font.png")))
+(define score-text-surface (load-img (file-blob "graph/score-text.png")))
+(define lives-text-surface (load-img (file-blob "graph/lives-text.png")))
+(define heart-surface (load-img (file-blob "graph/coeur.png")))
 
 (define win (create-window! "Crepes-party-hard-yolo-swag 2015"
                             'undefined 'undefined
                             +width+ +height+))
 
 (define win-surface (window-surface win))
-
-;(init-utils! win)
 
 (define (draw-player player)
   (let ((w 120)
@@ -94,15 +97,55 @@
      (* (height clock state)
         (- +lowest-point+ +highest-point+))))
 
+(define char-width (quotient (surface-w font-surface) 10))
+
+(define (draw-score score)
+  (draw-score-text!)
+  (let loop ((text (number->list score))
+             (x (surface-w score-text-surface)))
+    (unless (null? text)
+      (blit-surface! font-surface
+                     (make-rect (* (car text) char-width)
+                                0
+                                char-width
+                                (surface-h font-surface))
+                     win-surface
+                     (make-rect x 5))
+      (loop (cdr text) (+ x char-width)))))
+
+(define (number->list n)
+  (map (o (lambda (i) (- i (char->integer #\0))) char->integer)
+       (string->list (number->string n))))
+
+(define (draw-score-text!)
+  (blit-surface!
+   score-text-surface
+   #f
+   win-surface
+   (make-rect 0 5)))
+
+(define (draw-lives lives)
+  (let ((orig-x (- +width+
+                   (surface-w lives-text-surface)
+                   (* +initial-lives+ (surface-w heart-surface))
+                   5)))
+    (blit-surface! lives-text-surface #f
+                   win-surface (make-rect orig-x 5))
+    (let loop ((n lives)
+               (x (+ orig-x (surface-w lives-text-surface))))
+      (unless (zero? n)
+        (begin
+          (blit-surface! heart-surface #f
+                         win-surface (make-rect x 5))
+          (loop (sub1 n) (+ x (surface-w heart-surface))))))))
+
 (define (draw-game player lives score board clock)
   (blit-surface! background-surface #f win-surface #f)
   (draw-player player)
   (for-each (draw-crepe clock) board)
-  ;; (font-size 16)
-  ;; (font-color black)
-  ;; (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
+  (draw-score score)
+  (draw-lives lives)
   (update-window-surface! win)
-  ;(show!)
   )
 
 (define (collect-events!)
