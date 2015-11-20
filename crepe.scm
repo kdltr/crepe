@@ -8,12 +8,13 @@
 (define (draw-player player)
   (let ((w 120)
         (h 300))
-    (fill-rect! win-surface
-                (make-rect (+ (* player +column-space+) (/ w 2))
-                           (- (* (sub1 +lines-number+) +line-space+) (/ h 2))
-                           w
-                           h)
-                red)))
+    (blit-surface! character-surface
+                   #f
+                   win-surface
+                   (make-rect (+ (* player +column-space+) (/ w 2))
+                              (- (* (sub1 +lines-number+) +line-space+) (/ h 2))
+                              w
+                              h))))
 
 (define (crepe-surface state wiggle)
   (match state

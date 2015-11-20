@@ -41,6 +41,7 @@
 (define score-text-surface (load-img (file-blob "graph/score-text.png")))
 (define lives-text-surface (load-img (file-blob "graph/lives-text.png")))
 (define heart-surface (load-img (file-blob "graph/coeur.png")))
+(define character-surface (load-img (file-blob "graph/character.png")))
 
 (include "crepe")
 (include "menu")
