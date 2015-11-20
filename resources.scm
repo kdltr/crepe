@@ -57,3 +57,5 @@
     (if event
         (cons event (collect-events!))
         '())))
+
+(main-loop-menu)
