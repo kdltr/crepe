@@ -8,8 +8,8 @@ SDLLDFLAGS != sdl2-config --libs
 CFLAGS = ${SDLCFLAGS}
 LDFLAGS = ${SDLLDFLAGS} -lSDL2_image
 
-crepe: crepe.scm logic.scm ${DEPS}
-	csc ${CSCFLAGS} -uses sdl2 -uses sdl2-image -uses defstruct -uses matchable crepe.scm ${DEPS} ${LDFLAGS}
+crepe: crepe.scm game.scm menu.scm logic.scm ${DEPS}
+	csc crepe.scm ${CSCFLAGS} -uses sdl2 -uses sdl2-image -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
 	strip --strip-all $@
 
 libs/defstruct.o: libs/defstruct.scm
