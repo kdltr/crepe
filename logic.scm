@@ -87,7 +87,7 @@
 
 (define (within-catch-range? clock time speed)
   (let ((height (/ (- clock time) speed)))
-    (> 1 height 0.8)))
+    (> 0.8 height 0.7)))
 
 (define (should-fall?)
   (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+)))
