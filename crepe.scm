@@ -1,6 +1,8 @@
 (use
   srfi-1
   sdl2
+  lolevel
+  sdl2-internals
   (prefix sdl2-image img:)
   defstruct
   matchable
@@ -18,12 +20,20 @@
 (init!)
 (assert (member 'png (img:init! '(png))))
 
+(define win (create-window! "Crepes-party-hard-yolo-swag 2015"
+                            'undefined 'undefined
+                            +width+ +height+))
+
+(define renderer (SDL_CreateRenderer win -1 0))
+
 (define (load-img blob)
   (let* ((evicted-blob (object-evict blob))
          (rw (rw-from-blob evicted-blob))
-         (surface (img:load-rw rw #t)))
+         (surface (img:load-rw rw #t))
+         (texture (SDL_CreateTextureFromSurface renderer surface)))
     (object-release evicted-blob)
-    surface))
+    (assert )
+    texture))
 
 (define-syntax file-blob
   (ir-macro-transformer
@@ -33,26 +43,21 @@
          (lambda ()
            (string->blob (read-string))))))))
 
-(define crepe-down-surface (assert (load-img (file-blob "graph/down.png"))))
-(define crepe-up-surface (assert (load-img (file-blob "graph/up.png"))))
-(define crepe-left-surface (assert (load-img (file-blob "graph/left.png"))))
-(define crepe-right-surface (assert (load-img (file-blob "graph/right.png"))))
-(define crepe-stick-surface (assert (load-img (file-blob "graph/sticky-full.png"))))
-(define crepe-unstick-surface (assert (load-img (file-blob "graph/unstick.png"))))
-(define background-surface (assert (load-img (file-blob "graph/background.png"))))
-
-(define win (create-window! "Crepes-party-hard-yolo-swag 2015"
-                            'undefined 'undefined
-                            +width+ +height+))
-
-(define win-surface (window-surface win))
+(define crepe-down-texture (assert (load-img (file-blob "graph/down.png"))))
+(define crepe-up-texture (assert (load-img (file-blob "graph/up.png"))))
+(define crepe-left-texture (assert (load-img (file-blob "graph/left.png"))))
+(define crepe-right-texture (assert (load-img (file-blob "graph/right.png"))))
+(define crepe-stick-texture (assert (load-img (file-blob "graph/sticky-full.png"))))
+(define crepe-unstick-texture (assert (load-img (file-blob "graph/unstick.png"))))
+(define background-texture (assert (load-img (file-blob "graph/background.png"))))
 
 (define screen-blit!
-  (let ((rect (make-rect)))
+  (let ((rect (make-rect))
+        (srcrect (make-rect 0 0 1280 720)))
     (lambda (surface x y)
       (set! (rect-x rect) x)
       (set! (rect-y rect) y)
-      (blit-surface! surface #f win-surface rect))))
+      (SDL_RenderCopy renderer surface srcrect rect))))
 
 ;(init-utils! win)
 
@@ -63,19 +68,20 @@
     (lambda (player)
       (set! (rect-x rect) (+ (* player +column-space+) (/ w 2)))
       (set! (rect-y rect) (- (* (sub1 +lines-number+) +line-space+) (/ h 2)))
-      (fill-rect! win-surface rect red))))
+      (SDL_SetRenderDrawColor renderer 255 0 0 255)
+      (SDL_RenderFillRect renderer rect))))
 
 (define (crepe-surface state wiggle)
   (match state
     (($ ascend-state)
-     crepe-up-surface)
+     crepe-up-texture)
     (($ stick-state unstick)
-     (if unstick crepe-unstick-surface crepe-stick-surface))
+     (if unstick crepe-unstick-texture crepe-stick-texture))
     (($ descend-state speed time)
      (cond
-      ((< wiggle -0.4) crepe-left-surface)
-      ((> 0.4 wiggle -0.4) crepe-down-surface)
-      ((> wiggle 0.4) crepe-right-surface)))))
+      ((< wiggle -0.4) crepe-left-texture)
+      ((> 0.4 wiggle -0.4) crepe-down-texture)
+      ((> wiggle 0.4) crepe-right-texture)))))
 
 (define ((draw-crepe clock) crepe)
   (let* ((state (crepe-state crepe))
@@ -87,7 +93,7 @@
      surface
      (round
       (+ (/ +column-space+ 2)
-         (- (* column +column-space+) (/ (surface-w surface) 2))
+         (- (* column +column-space+) (/ 200 2))
          (if (descend-state? state) (* (quotient +column-space+ 4) wiggle) 0)))
      (round
       (crepe-y state clock)))))
@@ -98,13 +104,13 @@
         (- +lowest-point+ +highest-point+))))
 
 (define (draw-game player lives score board clock)
-  (blit-surface! background-surface #f win-surface #f)
+  (screen-blit! background-texture 0 0)
   (draw-player player)
   (for-each (draw-crepe clock) board)
   ;; (font-size 16)
   ;; (font-color black)
   ;; (text (- +width+ 10) 20 (sprintf "Lives: ~A  Score: ~A" lives score) align: #:right)
-  (update-window-surface! win)
+  (SDL_RenderPresent renderer)
   ;(show!)
   )
 
