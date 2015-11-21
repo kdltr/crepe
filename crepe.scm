@@ -86,6 +86,14 @@
 (define heart-surface (load-img (file-blob "graph/coeur.png")))
 (define character-surface (load-img (file-blob "graph/character.png")))
 
+(define board-surface (load-img (file-blob "graph/board.png")))
+(define pins-surface (load-img (file-blob "graph/pins.png")))
+(define pins-flipped-surface (load-img (file-blob "graph/pins-flipped.png")))
+(define button-on-surface (load-img (file-blob "graph/button-on.png")))
+(define button-off-surface (load-img (file-blob "graph/button-off.png")))
+(define play-text-surface (load-img (file-blob "graph/play-text.png")))
+(define quit-text-surface (load-img (file-blob "graph/quit-text.png")))
+
 (include "game")
 (include "menu")
 
