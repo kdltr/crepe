@@ -19,9 +19,9 @@
 (define (main-loop-menu)
   (draw-menu-graphics)
   (SDL_RenderPresent renderer)
-  (let* ((event (find mouse-button-event? (collect-events!)))
-         (x (and event (mouse-button-event-x event)))
-         (y (and event (mouse-button-event-y event))))
+  (let* ((event (find list? (collect-events!)))
+         (x (and event (car event)))
+         (y (and event (cadr event))))
     (when event
       (cond ((inside-rect? play-button x y)
              (start-game))

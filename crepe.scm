@@ -20,11 +20,25 @@
 (define renderer
   (SDL_CreateRenderer win -1 6))
 
-(define (collect-events!)
-  (let ((event (poll-event!)))
-    (if event
-        (cons event (collect-events!))
-        '())))
+(define collect-events!
+  (let ((e (make-event)))
+    (lambda ()
+      (if (poll-event! e)
+          (let ((o (interpret-event e)))
+            (if o
+                (cons o (collect-events!))
+                (collect-events!)))
+          '()))))
+
+(define (interpret-event ev)
+  (case (event-type ev)
+    ((key-down)
+     (keyboard-event-scancode ev))
+    ((mouse-button-down)
+     (list (mouse-button-event-x ev)
+           (mouse-button-event-y ev)))
+    (else
+     #f)))
 
 (defstruct sprite w h texture)
 
@@ -38,12 +52,17 @@
                  h: (surface-h surface)
                  texture: texture)))
 
-(define (show-sprite! sprite x y)
-  (let ((rect (make-rect x y (sprite-w sprite) (sprite-h sprite))))
-    (SDL_RenderCopy renderer
-                    (sprite-texture sprite)
-                    #f
-                    rect)))
+(define show-sprite!
+  (let ((rect (make-rect)))
+    (lambda (sprite x y)
+      (set! (rect-x rect) x)
+      (set! (rect-y rect) y)
+      (set! (rect-w rect) (sprite-w sprite))
+      (set! (rect-h rect) (sprite-h sprite))
+      (SDL_RenderCopy renderer
+                      (sprite-texture sprite)
+                      #f
+                      rect))))
 
 (define-syntax file-blob
   (ir-macro-transformer
@@ -52,8 +71,6 @@
        (with-input-from-file filename
          (lambda ()
            (string->blob (read-string))))))))
-
-(define red (make-color 255 0 0))
 
 (define crepe-down-surface (load-img (file-blob "graph/down.png")))
 (define crepe-up-surface (load-img (file-blob "graph/up.png")))

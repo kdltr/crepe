@@ -46,19 +46,21 @@
 
 (define char-width (quotient (sprite-w font-surface) 10))
 
-(define (draw-score score)
-  (draw-score-text!)
-  (let loop ((text (number->list score))
-             (x (sprite-w score-text-surface)))
-    (unless (null? text)
-      (SDL_RenderCopy renderer
-                      (sprite-texture font-surface)
-                      (make-rect (* (car text) char-width)
-                                 0
-                                 char-width
-                                 (sprite-h font-surface))
-                      (make-rect x 5 char-width (sprite-h font-surface)))
-      (loop (cdr text) (+ x char-width)))))
+(define draw-score
+  (let ((r1 (make-rect 0 0 char-width (sprite-h font-surface)))
+        (r2 (make-rect 0 5 char-width (sprite-h font-surface))))
+    (lambda (score)
+      (draw-score-text!)
+      (let loop ((text (number->list score))
+                 (x (sprite-w score-text-surface)))
+        (unless (null? text)
+          (set! (rect-x r1) (* (car text) char-width))
+          (set! (rect-x r2) x)
+          (SDL_RenderCopy renderer
+                          (sprite-texture font-surface)
+                          r1
+                          r2)
+          (loop (cdr text) (+ x char-width)))))))
 
 (define (number->list n)
   (map (o (lambda (i) (- i (char->integer #\0))) char->integer)
@@ -86,8 +88,7 @@
   (for-each (draw-crepe clock) board)
   (draw-score score)
   (draw-lives lives)
-  (SDL_RenderPresent renderer)
-  )
+  (SDL_RenderPresent renderer))
 
 (define (start-game)
   (main-loop +initial-player-position+
@@ -98,9 +99,9 @@
 (define (keydown-event? ev)
   (eq? (event-type ev) 'key-down))
 
-(define (get-direction event)
-  (if event
-      (case (keyboard-event-scancode event)
+(define (get-direction scancode)
+  (if scancode
+      (case scancode
         ((left) 'left)
         ((right) 'right)
         (else 'stay))
@@ -108,7 +109,7 @@
 
 (define (main-loop player lives score board)
   (let* ((clock (get-ticks))
-         (new-player (move-player player (get-direction (find keydown-event? (collect-events!)))))
+         (new-player (move-player player (get-direction (find symbol? (collect-events!)))))
          (new-board (map (compute-crepe clock new-player score (final-times board)) board))
          (score-increment (compute-score board new-board))
          (lives-lost (count (lambda (c) (outside-board? clock c)) new-board)))
