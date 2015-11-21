@@ -30,29 +30,48 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export SDL_GetNumTouchDevices
+        SDL_GetNumTouchFingers
+        SDL_GetTouchDevice
+        SDL_GetTouchFinger
 
-(import scheme chicken)
-(use sdl2-internals extras lolevel srfi-1 srfi-18)
+        SDL_RecordGesture
+        SDL_SaveDollarTemplate
+        SDL_SaveAllDollarTemplates
+        SDL_LoadDollarTemplates)
 
-(include "lib/shared/error-helpers.scm")
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+(define-function-binding SDL_GetNumTouchDevices
+  return: (int num-touch-devices))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-function-binding SDL_GetNumTouchFingers
+  return: (int num-touch-devices)
+  args: ((SDL_TouchID touch-id)))
 
-)
+(define-function-binding SDL_GetTouchDevice
+  return: (SDL_TouchID device-id)
+  args: ((int index)))
+
+(define-function-binding SDL_GetTouchFinger
+  return: (SDL_Finger* finger-or-null)
+  args: ((SDL_TouchID touch-id)
+         (int index)))
+
+
+(define-function-binding SDL_RecordGesture
+  return: (bool success?)
+  args: ((SDL_TouchID touch-id)))
+
+(define-function-binding SDL_SaveDollarTemplate
+  return: (bool success?)
+  args: ((SDL_GestureID gesture-id)
+         (SDL_RWops* dst)))
+
+(define-function-binding SDL_SaveAllDollarTemplates
+  return: (int num-templates-saved)
+  args: ((SDL_RWops* dst)))
+
+(define-function-binding SDL_LoadDollarTemplates
+  return: (int num-templates-loaded)
+  args: ((SDL_TouchID touch-id)
+         (SDL_RWops* src)))

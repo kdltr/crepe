@@ -60,10 +60,16 @@
 
 
 (define (num-joysticks)
-  (SDL_NumJoysticks))
+  (let ((ret-code (SDL_NumJoysticks)))
+    (when (negative? ret-code)
+      (abort (sdl-failure "SDL_NumJoysticks" ret-code)))))
+
 
 (define (joystick-open! device-index)
-  (SDL_JoystickOpen device-index))
+  (let ((joystick (SDL_JoystickOpen device-index)))
+    (if (and (joystick? joystick) (not (struct-null? joystick)))
+        joystick
+        (abort (sdl-failure "SDL_JoystickOpen" #f)))))
 
 (define (joystick-close! joystick)
   (SDL_JoystickClose joystick))
@@ -72,16 +78,26 @@
   (SDL_JoystickUpdate))
 
 
+(: joystick-event-state-set!
+   (boolean -> boolean))
 (define (joystick-event-state-set! state)
-  (let ((result (SDL_JoystickEventState
-                 (if state SDL_ENABLE SDL_IGNORE))))
-    (if (< result 0)
-        result
+  (let* ((state-int (case state
+                      ((#t) SDL_ENABLE)
+                      ((#f) SDL_IGNORE)
+                      (else (error 'joystick-event-state-set!
+                                   "invalid state" state))))
+         (result (SDL_JoystickEventState state-int)))
+    (if (negative? result)
+        (abort (sdl-failure "SDL_JoystickEventState" result))
         (= result SDL_ENABLE))))
 
+(: joystick-event-state
+   (-> boolean))
 (define (joystick-event-state)
-  (= SDL_ENABLE
-     (SDL_JoystickEventState SDL_QUERY)))
+  (let ((result (SDL_JoystickEventState SDL_QUERY)))
+    (if (negative? result)
+        (abort (sdl-failure "SDL_JoystickEventState" result))
+        (= result SDL_ENABLE))))
 
 (set! (setter joystick-event-state)
       joystick-event-state-set!)
@@ -92,44 +108,68 @@
 
 
 (define (joystick-num-axes joystick)
-  (SDL_JoystickNumAxes joystick))
+  (let ((ret-code (SDL_JoystickNumAxes joystick)))
+    (when (negative? ret-code)
+      (abort (sdl-failure "SDL_JoystickNumAxes" ret-code)))))
 
 (define (joystick-num-balls joystick)
-  (SDL_JoystickNumBalls joystick))
+  (let ((ret-code (SDL_JoystickNumBalls joystick)))
+    (when (negative? ret-code)
+      (abort (sdl-failure "SDL_JoystickNumBalls" ret-code)))))
 
 (define (joystick-num-buttons joystick)
-  (SDL_JoystickNumButtons joystick))
+  (let ((ret-code (SDL_JoystickNumButtons joystick)))
+    (when (negative? ret-code)
+      (abort (sdl-failure "SDL_JoystickNumButtons" ret-code)))))
 
 (define (joystick-num-hats joystick)
-  (SDL_JoystickNumHats joystick))
+  (let ((ret-code (SDL_JoystickNumHats joystick)))
+    (when (negative? ret-code)
+      (abort (sdl-failure "SDL_JoystickNumHats" ret-code)))))
 
 
 (define (joystick-get-axis joystick axis)
+  (assert-bounds axis 0 (sub1 (joystick-num-axes joystick))
+                 "axis number out of bounds" 'joystick-get-axis)
   (SDL_JoystickGetAxis joystick axis))
 
 (define (joystick-get-ball joystick ball)
+  (assert-bounds ball 0 (sub1 (joystick-num-balls joystick))
+                 "ball number out of bounds" 'joystick-get-ball)
   (with-temp-mem ((dx-out (%allocate-int))
                   (dy-out (%allocate-int)))
-    (let ((response (SDL_JoystickGetBall
+    (let ((ret-code (SDL_JoystickGetBall
                      joystick ball dx-out dy-out)))
-      (if (zero? response)
+      (if (zero? ret-code)
           (values (pointer-s32-ref dx-out)
                   (pointer-s32-ref dy-out))
-          (values #f #f)))))
+          (begin
+            (free dx-out)
+            (free dy-out)
+            (abort (sdl-failure "SDL_JoystickGetBall" ret-code)))))))
 
 (define (joystick-get-button joystick button)
+  (assert-bounds button 0 (sub1 (joystick-num-buttons joystick))
+                 "button number out of bounds" 'joystick-get-button)
   (SDL_JoystickGetButton joystick button))
 
 (define (joystick-get-hat joystick hat)
+  (assert-bounds hat 0 (sub1 (joystick-num-hats joystick))
+                 "hat number out of bounds" 'joystick-get-hat)
   (joystick-hat-position->symbol
-   (joystick-get-hat-raw joystick hat)))
+   (SDL_JoystickGetHat joystick hat)))
 
 (define (joystick-get-hat-raw joystick hat)
+  (assert-bounds hat 0 (sub1 (joystick-num-hats joystick))
+                 "hat number out of bounds" 'joystick-get-hat-raw)
   (SDL_JoystickGetHat joystick hat))
 
 
 (define (joystick-instance-id joystick)
-  (SDL_JoystickInstanceID joystick))
+  (let ((id (SDL_JoystickInstanceID joystick)))
+    (if (negative? id)
+        (abort (sdl-failure "SDL_JoystickInstanceID" id))
+        id)))
 
 (define (joystick-name joystick)
   (SDL_JoystickName joystick))

@@ -71,6 +71,17 @@
 (gl:init)
 (gl-utils:check-error)
 
+
+;;; For some reason, getting certain attributes causes an OpenGL
+;;; error, at least on Mac OS X. This procedure attempts to get the
+;;; value of the given attribute, but handles exceptions so that the
+;;; program can continue.
+(define (gl-attribute-safe attr)
+  (condition-case
+   (sdl2:gl-attribute attr)
+   (e (exn sdl2)
+      ((condition-property-accessor 'sdl2 'sdl-error) e))))
+
 ;;; The actual OpenGL settings may differ from the requested settings.
 (printf
  "Actual OpenGL settings:
@@ -81,13 +92,14 @@
   doublebuffer        ~A
   multisamplebuffers  ~A
   multisamplesamples  ~A~%"
- (or (sdl2:gl-attribute 'red-size)           (sdl2:get-error))
- (or (sdl2:gl-attribute 'green-size)         (sdl2:get-error))
- (or (sdl2:gl-attribute 'blue-size)          (sdl2:get-error))
- (or (sdl2:gl-attribute 'depth-size)         (sdl2:get-error))
- (or (sdl2:gl-attribute 'doublebuffer)       (sdl2:get-error))
- (or (sdl2:gl-attribute 'multisamplebuffers) (sdl2:get-error))
- (or (sdl2:gl-attribute 'multisamplesamples) (sdl2:get-error)))
+ (gl-attribute-safe 'red-size)
+ (gl-attribute-safe 'green-size)
+ (gl-attribute-safe 'blue-size)
+ (gl-attribute-safe 'depth-size)
+ (gl-attribute-safe 'doublebuffer)
+ (gl-attribute-safe 'multisamplebuffers)
+ (gl-attribute-safe 'multisamplesamples))
+
 
 (printf "Drawable size: ~A~%"
         (receive (sdl2:gl-get-drawable-size window)))

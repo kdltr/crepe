@@ -47,24 +47,7 @@
         wait-event!
         wait-event-timeout!
 
-        register-events!
-
-        ;; TODO: add-event-watch!
-        ;; TODO: del-event-watch!
-        ;; TODO: filter-events!
-        ;; TODO: get-event-filter
-        ;; TODO: set-event-filter!
-
-        get-num-touch-devices
-        get-num-touch-fingers
-        get-touch-device
-        get-touch-finger
-
-        ;; TODO: record-gesture!
-        ;; TODO: save-dollar-template!
-        ;; TODO: save-all-dollar-templates!
-        ;; TODO: load-dollar-templates
-        )
+        register-events!)
 
 
 (define (%event-type->int type #!optional fn-name)
@@ -131,7 +114,11 @@
                        event-array num action
                        (%event-type->int min-type fn-name)
                        (%event-type->int max-type fn-name))))
-      (%event-array->list event-array num-peeped))))
+      (if (negative? num-peeped)
+          (begin
+            (free event-array)
+            (abort (sdl-failure "SDL_PeepEvents" num-peeped)))
+          (%event-array->list event-array num-peeped)))))
 
 (define (peek-events num #!optional
                      (min-type 'first)
@@ -158,8 +145,14 @@
 (define (pump-events!)
   (SDL_PumpEvents))
 
+(: push-event!
+   ((struct sdl2:event) -> boolean))
 (define (push-event! event)
-  (SDL_PushEvent event))
+  (let ((ret-code (SDL_PushEvent event)))
+    (case ret-code
+      ((0) #f)
+      ((1) #t)
+      (else (abort (sdl-failure "SDL_PushEvent" ret-code))))))
 
 
 ;;; This does not actually use SDL_WaitEvent, because that function
@@ -215,39 +208,9 @@
       (let* ((numevents (length event-symbols))
              (response (SDL_RegisterEvents numevents)))
         (if (= response %SDL_RegisterEvents-failure-value)
-            (error 'register-events!
-                   (sprintf "Not enough space available for ~A new types"
-                            numevents)
-                   event-symbols)
+            (abort (sdl-failure "SDL_RegisterEvents" response))
             (map register-event!
                  event-symbols
                  ;; A list of integers, length numevent, starting at
                  ;; response and counting up by 1.
                  (iota numevents response))))))
-
-
-
-;; TODO: add-event-watch!
-;; TODO: del-event-watch!
-;; TODO: filter-events!
-;; TODO: get-event-filter
-;; TODO: set-event-filter!
-
-
-(define (get-num-touch-devices)
-  (SDL_GetNumTouchDevices))
-
-(define (get-num-touch-fingers touch-id)
-  (SDL_GetNumTouchFingers touch-id))
-
-(define (get-touch-device device-id)
-  (SDL_GetTouchDevice device-id))
-
-(define (get-touch-finger touch-id index)
-  (SDL_GetTouchFinger touch-id index))
-
-
-;; TODO: record-gesture!
-;; TODO: save-dollar-template!
-;; TODO: save-all-dollar-templates!
-;; TODO: load-dollar-templates

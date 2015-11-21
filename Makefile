@@ -9,7 +9,7 @@ CFLAGS = ${SDLCFLAGS}
 LDFLAGS = ${SDLLDFLAGS} -lSDL2_image
 
 crepe: crepe.scm game.scm menu.scm logic.scm ${DEPS}
-	csc crepe.scm -static-libs -O5 -strip -uses sdl2 -uses sdl2-image -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
+	csc crepe.scm -static-libs -O5 -strip -uses sdl2 -uses sdl2-internals -uses sdl2-image -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
 
 libs/defstruct.o: libs/defstruct.scm
 	csc $< ${CSCFLAGS} -c -J -unit defstruct -o $@

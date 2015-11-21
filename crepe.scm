@@ -1,20 +1,49 @@
 (use
   srfi-1
   sdl2
+  sdl2-internals
   (prefix sdl2-image img:)
   defstruct
   matchable
 )
 
+(define +width+ 1280)
+(define +height+ 720)
+
 (init!)
 (assert (member 'png (img:init! '(png))))
+
+(define win (create-window! "Crepes-party-hard-yolo-swag 2015"
+                            'undefined 'undefined
+                            +width+ +height+))
+
+(define renderer
+  (SDL_CreateRenderer win -1 6))
+
+(define (collect-events!)
+  (let ((event (poll-event!)))
+    (if event
+        (cons event (collect-events!))
+        '())))
+
+(defstruct sprite w h texture)
 
 (define (load-img blob)
   (let* ((evicted-blob (object-evict blob))
          (rw (rw-from-blob evicted-blob))
-         (surface (img:load-rw rw #t)))
+         (surface (img:load-rw rw #t))
+         (texture (SDL_CreateTextureFromSurface renderer surface)))
     (object-release evicted-blob)
-    surface))
+    (make-sprite w: (surface-w surface)
+                 h: (surface-h surface)
+                 texture: texture)))
+
+(define (show-sprite! sprite x y)
+  (let ((rect (make-rect x y (sprite-w sprite) (sprite-h sprite))))
+    (SDL_RenderCopy renderer
+                    (sprite-texture sprite)
+                    #f
+                    rect)))
 
 (define-syntax file-blob
   (ir-macro-transformer
@@ -24,17 +53,14 @@
          (lambda ()
            (string->blob (read-string))))))))
 
-(define +width+ 1280)
-(define +height+ 720)
-
 (define red (make-color 255 0 0))
 
-(define crepe-down-surface (assert (load-img (file-blob "graph/down.png"))))
-(define crepe-up-surface (assert (load-img (file-blob "graph/up.png"))))
-(define crepe-left-surface (assert (load-img (file-blob "graph/left.png"))))
-(define crepe-right-surface (assert (load-img (file-blob "graph/right.png"))))
-(define crepe-stick-surface (assert (load-img (file-blob "graph/sticky-full.png"))))
-(define crepe-unstick-surface (assert (load-img (file-blob "graph/unstick.png"))))
+(define crepe-down-surface (load-img (file-blob "graph/down.png")))
+(define crepe-up-surface (load-img (file-blob "graph/up.png")))
+(define crepe-left-surface (load-img (file-blob "graph/left.png")))
+(define crepe-right-surface (load-img (file-blob "graph/right.png")))
+(define crepe-stick-surface (load-img (file-blob "graph/sticky-full.png")))
+(define crepe-unstick-surface (load-img (file-blob "graph/unstick.png")))
 
 (define background-surface (load-img (file-blob "graph/background.png")))
 (define font-surface (load-img (file-blob "graph/font.png")))
@@ -45,17 +71,5 @@
 
 (include "game")
 (include "menu")
-
-(define win (create-window! "Crepes-party-hard-yolo-swag 2015"
-                            'undefined 'undefined
-                            +width+ +height+))
-
-(define win-surface (window-surface win))
-
-(define (collect-events!)
-  (let ((event (poll-event!)))
-    (if event
-        (cons event (collect-events!))
-        '())))
 
 (main-loop-menu)

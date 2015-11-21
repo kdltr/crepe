@@ -92,7 +92,9 @@
 
 
 (define (pixel-format-palette-set! pixel-format palette)
-  (SDL_SetPixelFormatPalette pixel-format palette))
+  (let ((ret-code (SDL_SetPixelFormatPalette pixel-format palette)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetPixelFormatPalette" ret-code)))))
 
 (define (pixel-format-palette pixel-format)
   (define getter (struct-field-getter
@@ -125,5 +127,5 @@
                              format err))))
          (pixel-format (SDL_AllocFormat format-int)))
     (if (struct-null? pixel-format)
-        #f
+        (abort (sdl-failure "SDL_AllocFormat" #f))
         pixel-format)))

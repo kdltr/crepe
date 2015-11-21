@@ -25,8 +25,6 @@
                  '())
            ,(module-file module ".scm"))
   (compile -v -s -O3 -d0 ,(module-file module ".import.scm"))
-  (compile -v -c -O3 -d1 -unit ,module ,@extra-flags-list
-           ,(module-file module ".scm"))
   (newline))
 
 
@@ -40,7 +38,6 @@
   (append-map (lambda (module)
                 (cons* (module-file module ".so")
                        (module-file module ".import.so")
-                       (module-file module ".o")
                        (if emit-types?
                            (list (module-file module ".types"))
                            '())))

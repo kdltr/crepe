@@ -77,9 +77,13 @@
 (define-foreign-type SDL_Keymod int)
 (define-foreign-type SDL_MouseButton int)
 (define-foreign-type SDL_MouseButtonMask int)
+(define-foreign-type SDL_RendererFlags Uint32)
+(define-foreign-type SDL_RendererFlip Uint32)
 (define-foreign-type SDL_RWopsWhenceEnum int)
 (define-foreign-type SDL_Scancode int)
 (define-foreign-type SDL_SystemCursor int)
+(define-foreign-type SDL_TextureAccess int)
+(define-foreign-type SDL_TextureModulate int)
 (define-foreign-type SDL_TouchID Sint64)
 (define-foreign-type SDL_WindowEventID int)
 (define-foreign-type SDL_WindowFlags int)
@@ -182,6 +186,10 @@
   unwrap-rect
   wrap-rect)
 
+(define-foreign-type SDL_Renderer*
+  (c-pointer "SDL_Renderer")
+  unwrap-renderer
+  wrap-renderer)
 
 (define-foreign-type SDL_Point*
   (nonnull-c-pointer "SDL_Point")

@@ -51,6 +51,7 @@
 (include "lib/sdl2-internals/helpers/c-array.scm")
 (include "lib/sdl2-internals/helpers/define-function-binding.scm")
 (include "lib/sdl2-internals/helpers/foreign-lambda-with-dynamic-body.scm")
+(include "lib/sdl2-internals/helpers/sdl-failure.scm")
 
 ;;; NOTE: The ordering of the includes below is important!
 
@@ -70,6 +71,8 @@
 (include "lib/sdl2-internals/record-types/pixel-format.scm")
 (include "lib/sdl2-internals/record-types/point.scm")
 (include "lib/sdl2-internals/record-types/rect.scm")
+(include "lib/sdl2-internals/record-types/renderer.scm")
+(include "lib/sdl2-internals/record-types/renderer-info.scm")
 (include "lib/sdl2-internals/record-types/rwops.scm")
 (include "lib/sdl2-internals/record-types/surface.scm")
 (include "lib/sdl2-internals/record-types/texture.scm")
@@ -88,6 +91,7 @@
 (include "lib/sdl2-internals/enums/keycode.scm")
 (include "lib/sdl2-internals/enums/mouse.scm")
 (include "lib/sdl2-internals/enums/pixel-format.scm")
+(include "lib/sdl2-internals/enums/renderer.scm")
 (include "lib/sdl2-internals/enums/rwops.scm")
 (include "lib/sdl2-internals/enums/scancode.scm")
 (include "lib/sdl2-internals/enums/surface.scm")
@@ -147,9 +151,12 @@
 (include "lib/sdl2-internals/functions/mouse.scm")
 (include "lib/sdl2-internals/functions/pixel-format.scm")
 (include "lib/sdl2-internals/functions/rect.scm")
+(include "lib/sdl2-internals/functions/renderer.scm")
 (include "lib/sdl2-internals/functions/rwops.scm")
 (include "lib/sdl2-internals/functions/surface.scm")
+(include "lib/sdl2-internals/functions/texture.scm")
 (include "lib/sdl2-internals/functions/timer.scm")
+(include "lib/sdl2-internals/functions/touch.scm")
 (include "lib/sdl2-internals/functions/video-display-mode.scm")
 (include "lib/sdl2-internals/functions/window.scm")
 

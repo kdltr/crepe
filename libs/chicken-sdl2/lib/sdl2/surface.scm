@@ -34,8 +34,8 @@
 
         make-surface
         make-surface*
-        create-rgb-surface
-        create-rgb-surface-from
+        create-rgb-surface*
+        create-rgb-surface-from*
 
         convert-surface
         convert-surface*
@@ -67,6 +67,7 @@
         surface-colour-key-raw
         surface-alpha-mod   surface-alpha-mod-set!
         surface-blend-mode  surface-blend-mode-set!
+        surface-blend-mode-raw
         surface-color-mod   surface-color-mod-set!
         surface-colour-mod  surface-colour-mod-set!
         surface-palette     surface-palette-set!
@@ -140,17 +141,13 @@
   (assert (and (integer? width)  (positive? width)))
   (assert (and (integer? height) (positive? height)))
   (assert (and (integer? depth)  (positive? depth)))
-  (let* ((masks (%surface-default-masks depth))
-         (surface (SDL_CreateRGBSurface
-                   0 width height depth
-                   (list-ref masks 0)
-                   (list-ref masks 1)
-                   (list-ref masks 2)
-                   (list-ref masks 3))))
-    (if (and (surface? surface)
-             (not (struct-null? surface)))
-        surface
-        #f)))
+  (let ((masks (%surface-default-masks depth)))
+    (create-rgb-surface* 0 width height depth
+                         (list-ref masks 0)
+                         (list-ref masks 1)
+                         (list-ref masks 2)
+                         (list-ref masks 3))))
+
 
 (define (%surface-default-masks depth)
   (if (= depth 32)
@@ -172,16 +169,26 @@
 
 
 
-(define (create-rgb-surface flags width height depth
-                                rmask gmask bmask amask)
-  (SDL_CreateRGBSurface flags width height depth
-                        rmask gmask bmask amask))
+(define (create-rgb-surface* flags width height depth
+                             rmask gmask bmask amask)
+  (let ((surface (SDL_CreateRGBSurface flags width height depth
+                                       rmask gmask bmask amask)))
+    (if (and (surface? surface)
+             (not (struct-null? surface)))
+        surface
+        (abort (sdl-failure "SDL_CreateRGBSurface" #f)))))
 
 
-(define (create-rgb-surface-from pixels width height depth pitch
-                                     rmask gmask bmask amask)
-  (SDL_CreateRGBSurfaceFrom pixels width height depth pitch
-                            rmask gmask bmask amask))
+(define (create-rgb-surface-from* pixels width height depth pitch
+                                  rmask gmask bmask amask)
+  (let ((surface (SDL_CreateRGBSurfaceFrom
+                  pixels width height depth pitch
+                  rmask gmask bmask amask)))
+    (if (and (surface? surface)
+             (not (struct-null? surface)))
+        surface
+        (abort (sdl-failure "SDL_CreateRGBSurfaceFrom" #f)))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -198,7 +205,7 @@
     (if (and (surface? surface)
              (not (struct-null? surface)))
         surface
-        #f)))
+        (abort (sdl-failure "SDL_ConvertSurface" #f)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -222,7 +229,7 @@
     (if (and (surface? surface)
              (not (struct-null? surface)))
         surface
-        #f)))
+        (abort (sdl-failure "SDL_LoadBMP" #f)))))
 
 
 ;;; Loads a BMP image file from the given sdl2:rwops, and returns a new
@@ -244,21 +251,27 @@
     (if (and (surface? surface)
              (not (struct-null? surface)))
         surface
-        #f)))
+        (abort (sdl-failure "SDL_LoadBMP_RW" #f)))))
 
 
 (define (save-bmp! surface filepath)
-  (SDL_SaveBMP surface filepath))
+  (let ((ret-code (SDL_SaveBMP surface filepath)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SaveBMP" ret-code)))))
 
 (define (save-bmp-rw! surface rwops #!optional close?)
-  (SDL_SaveBMP_RW surface rwops close?))
+  (let ((ret-code (SDL_SaveBMP_RW surface rwops close?)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SaveBMP_RW" ret-code)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; LOCK / UNLOCK
 
 (define (lock-surface! surface)
-  (SDL_LockSurface surface))
+  (let ((ret-code (SDL_LockSurface surface)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_LockSurface" ret-code)))))
 
 (define (unlock-surface! surface)
   (SDL_UnlockSurface surface))
@@ -286,10 +299,14 @@
 ;;; BLIT
 
 (define (blit-surface! src src-rect dst dst-rect)
-  (SDL_BlitSurface src src-rect dst dst-rect))
+  (let ((ret-code (SDL_BlitSurface src src-rect dst dst-rect)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_BlitSurface" ret-code)))))
 
 (define (blit-scaled! src src-rect dst dst-rect)
-  (SDL_BlitScaled src src-rect dst dst-rect))
+  (let ((ret-code (SDL_BlitScaled src src-rect dst dst-rect)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_BlitScaled" ret-code)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -300,9 +317,11 @@
 ;;; sdl2:color or an integer (e.g. a mapped color from map-rgba, or
 ;;; a palette index).
 (define (fill-rect! surface rect color)
-  (SDL_FillRect surface rect
-                (%map-color-for-surface
-                 color surface 'fill-rect)))
+  (let* ((color-int (%map-color-for-surface
+                     color surface 'fill-rect!))
+         (ret-code (SDL_FillRect surface rect color-int)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_FillRect" ret-code)))))
 
 
 ;;; Fill multiple areas of the surface with a color. rects must be a
@@ -310,22 +329,24 @@
 ;;; mapped color from map-rgba, or a palette index).
 (define (fill-rects! surface rects color)
   (assert (every rect? rects))
-  (with-temp-mem ((rect-array (%rect-list->array rects)))
-    (SDL_FillRects surface
-                   rect-array
-                   (length rects)
-                   (%map-color-for-surface
-                    color surface 'fill-rects))))
+  (let ((color-int (%map-color-for-surface
+                    color surface 'fill-rects!)))
+    (with-temp-mem ((rect-array (%rect-list->array rects)))
+      (let ((ret-code (SDL_FillRects surface rect-array
+                                     (length rects) color-int)))
+        (unless (zero? ret-code)
+          (free rect-array)
+          (abort (sdl-failure "SDL_FillRects" ret-code)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; GET / SET PIXEL
 
 (define (%assert-surface-bounds surface x y fn-name)
-  (when (or (< x 0) (>= x (surface-w surface)))
-    (error fn-name "x coordinate out of bounds" x))
-  (when (or (< y 0) (>= y (surface-h surface)))
-    (error fn-name "y coordinate out of bounds" y)))
+  (assert-bounds x 0 (sub1 (surface-w surface))
+                 "x coordinate out of bounds" fn-name)
+  (assert-bounds y 0 (sub1 (surface-h surface))
+                 "y coordinate out of bounds" fn-name))
 
 
 ;;; Set the pixel at the given x/y coordinates to the given sdl2:color
@@ -383,42 +404,44 @@
 ;;; integer (e.g. a mapped color from map-rgba), or #f to disable
 ;;; the color key.
 (define (surface-color-key-set! surface color)
-  (if color
-      (SDL_SetColorKey surface #t
-                       (%map-color-for-surface
-                        color surface 'surface-color-key-set!))
-      (SDL_SetColorKey surface #f 0)))
+  (let ((ret-code
+         (if color
+             (SDL_SetColorKey surface #t
+                              (%map-color-for-surface
+                               color surface 'surface-color-key-set!))
+             (SDL_SetColorKey surface #f 0))))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetColorKey" ret-code)))))
 
 ;;; Returns the surface's color key as an sdl2:color, or #f if the
-;;; surface has no color key, or a negative integer if an error
-;;; occurred.
+;;; surface has no color key. Signals exception if an error occurred.
 (define (surface-color-key surface)
   (with-temp-mem ((mapped-color-out (%allocate-Uint32)))
-    (let ((response (SDL_GetColorKey surface mapped-color-out)))
-      (cond ((not (negative? response))
+    (let ((ret-code (SDL_GetColorKey surface mapped-color-out)))
+      (cond ((not (negative? ret-code))
              (%unmap-color-for-surface
               (pointer-u32-ref mapped-color-out)
               surface))
-            ((= -1 response)
+            ((= -1 ret-code)
              #f)
             (else
-             response)))))
+             (abort (sdl-failure "SDL_GetColorKey" ret-code)))))))
 
 (set! (setter surface-color-key)
       surface-color-key-set!)
 
 ;;; Returns the surface's color key as a non-negative integer (a
-;;; mapped color), or #f if the surface has no color key, or a
-;;; negative integer if an error occurred.
+;;; mapped color), or #f if the surface has no color key. Signals
+;;; exception if an error occurred.
 (define (surface-color-key-raw surface)
   (with-temp-mem ((mapped-color-out (%allocate-Uint32)))
-    (let ((response (SDL_GetColorKey surface mapped-color-out)))
-      (cond ((not (negative? response))
+    (let ((ret-code (SDL_GetColorKey surface mapped-color-out)))
+      (cond ((not (negative? ret-code))
              (pointer-u32-ref mapped-color-out))
-            ((= -1 response)
+            ((= -1 ret-code)
              #f)
             (else
-             response)))))
+             (abort (sdl-failure "SDL_GetColorKey" ret-code)))))))
 
 (set! (setter surface-color-key-raw)
       surface-color-key-set!)
@@ -430,45 +453,65 @@
 
 
 (define (surface-alpha-mod-set! surface alpha)
-  (SDL_SetSurfaceAlphaMod surface alpha))
+  (let ((ret-code (SDL_SetSurfaceAlphaMod surface alpha)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetSurfaceAlphaMod" ret-code)))))
 
 ;;; Returns the surface's alpha mod as an integer in range [0, 255],
 ;;; or a negative integer if an error occurred.
 (define (surface-alpha-mod surface)
   (with-temp-mem ((alpha-out (%allocate-Uint8)))
-    (let ((response (SDL_GetSurfaceAlphaMod surface alpha-out)))
-      (if (zero? response)
+    (let ((ret-code (SDL_GetSurfaceAlphaMod surface alpha-out)))
+      (if (zero? ret-code)
           (pointer-u8-ref alpha-out)
-          response))))
+          (begin
+            (free alpha-out)
+            (abort (sdl-failure "SDL_GetSurfaceAlphaMod" ret-code)))))))
 
 (set! (setter surface-alpha-mod)
       surface-alpha-mod-set!)
 
 
 
-(define surface-blend-mode-set!
-  (let ((err (lambda (x)
-               (error 'surface-blend-mode-set!
-                      "invalid surface blend mode"
-                      x))))
-    (lambda (surface blend-mode)
-      (SDL_SetSurfaceBlendMode
-       surface
-       (cond ((integer? blend-mode)
-              blend-mode)
-             (else
-              (symbol->blend-mode blend-mode err)))))))
-
 ;;; Returns the surface's blend mode as a symbol (none, blend, add, or
 ;;; mod), or a negative integer if an error occurred.
 (define (surface-blend-mode surface)
   (with-temp-mem ((mode-out (%allocate-Uint8)))
-    (let ((response (SDL_GetSurfaceBlendMode surface mode-out)))
-      (if (zero? response)
+    (let ((ret-code (SDL_GetSurfaceBlendMode surface mode-out)))
+      (if (zero? ret-code)
           (blend-mode->symbol (pointer-u8-ref mode-out))
-          response))))
+          (begin
+            (free mode-out)
+            (abort (sdl-failure "SDL_GetSurfaceBlendMode" ret-code)))))))
+
+
+(define (surface-blend-mode-raw surface)
+  (with-temp-mem ((mode-out (%allocate-Uint8)))
+    (let ((ret-code (SDL_GetSurfaceBlendMode surface mode-out)))
+      (if (zero? ret-code)
+          (pointer-u8-ref mode-out)
+          (begin
+            (free mode-out)
+            (abort (sdl-failure "SDL_GetSurfaceBlendMode" ret-code)))))))
+
+
+(define (surface-blend-mode-set! surface blend-mode)
+  (define (bad-mode-err x)
+    (error 'surface-blend-mode-set!
+           "invalid surface blend mode" x))
+  (let* ((mode-int (cond ((integer? blend-mode)
+                          blend-mode)
+                         (else
+                          (symbol->blend-mode
+                           blend-mode bad-mode-err))))
+         (ret-code (SDL_SetSurfaceBlendMode surface mode-int)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetSurfaceBlendMode" ret-code)))))
 
 (set! (setter surface-blend-mode)
+      surface-blend-mode-set!)
+
+(set! (setter surface-blend-mode-raw)
       surface-blend-mode-set!)
 
 
@@ -477,30 +520,34 @@
 ;;; integers (0-255), or an sdl2:color (alpha will be ignored).
 (define (surface-color-mod-set! surface rgb-or-color)
   (assert (or (list? rgb-or-color) (color? rgb-or-color)))
-  (if (list? rgb-or-color)
-      (SDL_SetSurfaceColorMod surface
-                              (list-ref rgb-or-color 0)
-                              (list-ref rgb-or-color 1)
-                              (list-ref rgb-or-color 2))
-      (SDL_SetSurfaceColorMod surface
-                              (color-r rgb-or-color)
-                              (color-g rgb-or-color)
-                              (color-b rgb-or-color))))
+  (receive (r g b) (if (list? rgb-or-color)
+                       (values (list-ref rgb-or-color 0)
+                               (list-ref rgb-or-color 1)
+                               (list-ref rgb-or-color 2))
+                       (values (color-r rgb-or-color)
+                               (color-g rgb-or-color)
+                               (color-b rgb-or-color)))
+    (let ((ret-code (SDL_SetSurfaceColorMod surface r g b)))
+      (unless (zero? ret-code)
+        (abort (sdl-failure "SDL_SetSurfaceColorMod" ret-code))))))
 
-;;; Returns the surface's color mod as a list of 3 integers in the
-;;; range [0, 255], or returns a negative integer if an error
-;;; occurred.
+;;; Returns the surface's color mod as 3 integers in the range [0,
+;;; 255]. Signals an exception if an error occurred.
 (define (surface-color-mod surface)
   (with-temp-mem ((r-out (%allocate-Uint8))
                   (g-out (%allocate-Uint8))
                   (b-out (%allocate-Uint8)))
-    (let ((response (SDL_GetSurfaceColorMod
+    (let ((ret-code (SDL_GetSurfaceColorMod
                      surface r-out g-out b-out)))
-      (if (zero? response)
+      (if (zero? ret-code)
           (values (pointer-u8-ref r-out)
                   (pointer-u8-ref g-out)
                   (pointer-u8-ref b-out))
-          (values response (void) (void))))))
+          (begin
+            (free r-out)
+            (free g-out)
+            (free b-out)
+            (abort (sdl-failure "SDL_GetSurfaceColorMod" ret-code)))))))
 
 (set! (setter surface-color-mod)
       surface-color-mod-set!)
@@ -511,7 +558,9 @@
 
 
 (define (surface-palette-set! surface palette)
-  (SDL_SetSurfacePalette surface palette))
+  (let ((ret-code (SDL_SetSurfacePalette surface palette)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetSurfacePalette" ret-code)))))
 
 (define (surface-palette surface)
   (pixel-format-palette (surface-format surface)))
@@ -522,4 +571,6 @@
 
 
 (define (surface-rle-set! surface rle?)
-  (SDL_SetSurfaceRLE surface rle?))
+  (let ((ret-code (SDL_SetSurfaceRLE surface rle?)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetSurfaceRLE" ret-code)))))

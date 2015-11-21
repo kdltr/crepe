@@ -33,7 +33,8 @@
 (export map-rgb
         map-rgba
         get-rgb
-        get-rgba)
+        get-rgba
+        pixel-format-enum-to-masks)
 
 
 (define (map-rgb pixel-format r g b)
@@ -66,3 +67,38 @@
             (pointer-u8-ref g-out)
             (pointer-u8-ref b-out)
             (pointer-u8-ref a-out))))
+
+
+
+(: pixel-format-enum-to-masks
+   ((or symbol fixnum) -> fixnum fixnum fixnum fixnum fixnum))
+(define (pixel-format-enum-to-masks format)
+  (define (bad-symbol-err x)
+    (error 'pixel-format-enum-to-masks
+           "invalid pixel format enum" x))
+
+  (let ((format-int (if (integer? format)
+                        format
+                        (symbol->pixel-format-enum
+                         format bad-symbol-err))))
+    (with-temp-mem ((bpp-out   (%allocate-int))
+                    (rmask-out (%allocate-Uint32))
+                    (gmask-out (%allocate-Uint32))
+                    (bmask-out (%allocate-Uint32))
+                    (amask-out (%allocate-Uint32)))
+      (let ((success?
+             (SDL_PixelFormatEnumToMasks
+              format-int bpp-out rmask-out gmask-out bmask-out amask-out)))
+        (if success?
+            (values (pointer-s32-ref bpp-out)
+                    (pointer-u32-ref rmask-out)
+                    (pointer-u32-ref gmask-out)
+                    (pointer-u32-ref bmask-out)
+                    (pointer-u32-ref amask-out))
+            (begin
+              (free bpp-out)
+              (free rmask-out)
+              (free gmask-out)
+              (free bmask-out)
+              (free amask-out)
+              (abort (sdl-failure "SDL_PixelFormatEnumToMasks" #f))))))))

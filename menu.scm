@@ -11,17 +11,14 @@
        (< y (+ (rect-y rect) (rect-h rect)))))
 
 (define (draw-menu-graphics)
-  (blit-surface! background-surface #f win-surface #f)
-  (fill-rect! win-surface
-              play-button
-	      red)
-  (fill-rect! win-surface
-	      quit-button
-	      red))
+  (show-sprite! background-surface 0 0)
+  (SDL_SetRenderDrawColor renderer 255 0 0 255)
+  (SDL_RenderFillRect renderer play-button)
+  (SDL_RenderFillRect renderer quit-button))
 
 (define (main-loop-menu)
   (draw-menu-graphics)
-  (update-window-surface! win)
+  (SDL_RenderPresent renderer)
   (let* ((event (find mouse-button-event? (collect-events!)))
          (x (and event (mouse-button-event-x event)))
          (y (and event (mouse-button-event-y event))))

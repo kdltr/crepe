@@ -55,31 +55,46 @@
 
 
 (: gl-create-context!
-   ((or (struct sdl2:window) pointer) -> void))
+   ((or (struct sdl2:window) pointer) -> (struct sdl2:gl-context)))
 (define (gl-create-context! window)
-  (SDL_GL_CreateContext window))
+  (let ((context (SDL_GL_CreateContext window)))
+    (if (and (gl-context? context) (not (struct-null? context)))
+        context
+        (abort (sdl-failure "SDL_GL_CreateContext" #f)))))
+
 
 (: gl-delete-context!
    ((or (struct sdl2:gl-context) pointer) -> void))
 (define (gl-delete-context! context)
   (SDL_GL_DeleteContext context))
 
+
 (: gl-make-current!
    ((or (struct sdl2:window) pointer)
     (or (struct sdl2:gl-context) pointer)
-    -> fixnum))
+    -> void))
 (define (gl-make-current! window gl-context)
-  (SDL_GL_MakeCurrent window gl-context))
+  (let ((ret-code (SDL_GL_MakeCurrent window gl-context)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_GL_MakeCurrent" ret-code)))))
+
 
 (: gl-get-current-window
    (-> (struct sdl2:window)))
 (define (gl-get-current-window)
-  (SDL_GL_GetCurrentWindow))
+  (let ((window (SDL_GL_GetCurrentWindow)))
+    (if (and (window? window) (not (struct-null? window)))
+        window
+        (abort (sdl-failure "SDL_GL_GetCurrentWindow" #f)))))
+
 
 (: gl-get-current-context
    (-> (struct sdl2:gl-context)))
 (define (gl-get-current-context)
-  (SDL_GL_GetCurrentContext))
+  (let ((context (SDL_GL_GetCurrentContext)))
+    (if (and (gl-context? context) (not (struct-null? context)))
+        context
+        (abort (sdl-failure "SDL_GL_GetCurrentContext" #f)))))
 
 
 (: %gl-attr->int
@@ -94,8 +109,7 @@
 
 
 (: gl-attribute
-   ((or symbol fixnum)
-    -> (or false fixnum symbol (list-of symbol))))
+   ((or symbol fixnum) -> (or fixnum symbol (list-of symbol))))
 ;;; Get the value of a GL attribute. Returns the value (usually an
 ;;; integer) on success, or #f if an error occurred.
 ;;;
@@ -108,9 +122,8 @@
 (define (gl-attribute attr)
   (let ((attr-int (%gl-attr->int attr 'gl-attribute)))
     (with-temp-mem ((value-out (%allocate-int)))
-      (let ((response (SDL_GL_GetAttribute attr-int value-out)))
-        (if (not (zero? response))
-            #f
+      (let ((ret-code (SDL_GL_GetAttribute attr-int value-out)))
+        (if (zero? ret-code)
             (select attr-int
               ((SDL_GL_CONTEXT_FLAGS)
                (unpack-gl-context-flags
@@ -119,12 +132,14 @@
                (gl-profile->symbol
                 (pointer-s32-ref value-out)))
               (else
-               (pointer-s32-ref value-out))))))))
+               (pointer-s32-ref value-out)))
+            (begin
+              (free value-out)
+              (abort (sdl-failure "SDL_GL_GetAttribute" ret-code))))))))
 
 
 (: gl-attribute-set!
-   ((or symbol fixnum) (or fixnum symbol (list-of symbol))
-    -> fixnum))
+   ((or symbol fixnum) (or fixnum symbol (list-of symbol)) -> void))
 ;;; Set the value of a GL attribute. Returns 0 on success, or -1 if an
 ;;; error occurred.
 ;;;
@@ -135,20 +150,21 @@
 ;;; - For other attributes, the value must be an integer.
 ;;;
 (define (gl-attribute-set! attr value)
-  (let ((attr-int (%gl-attr->int attr 'gl-attribute-set!)))
-    (SDL_GL_SetAttribute
-     attr-int
-     (select attr-int
-       ((SDL_GL_CONTEXT_FLAGS)
-        (if (integer? value)
-            value
-            (pack-gl-context-flags value)))
-       ((SDL_GL_CONTEXT_PROFILE_MASK)
-        (if (integer? value)
-            value
-            (symbol->gl-profile value)))
-       (else
-        value)))))
+  (let* ((attr-int (%gl-attr->int attr 'gl-attribute-set!))
+         (value-int (select attr-int
+                      ((SDL_GL_CONTEXT_FLAGS)
+                       (if (integer? value)
+                           value
+                           (pack-gl-context-flags value)))
+                      ((SDL_GL_CONTEXT_PROFILE_MASK)
+                       (if (integer? value)
+                           value
+                           (symbol->gl-profile value)))
+                      (else
+                       value)))
+         (ret-code (SDL_GL_SetAttribute attr-int value-int)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_GL_SetAttribute" ret-code)))))
 
 (set! (setter gl-attribute)
       gl-attribute-set!)
@@ -184,9 +200,11 @@
   (SDL_GL_GetSwapInterval))
 
 (: gl-swap-interval-set!
-   (fixnum -> fixnum))
+   (fixnum -> void))
 (define (gl-swap-interval-set! interval)
-  (SDL_GL_SetSwapInterval interval))
+  (let ((ret-code (SDL_GL_SetSwapInterval interval)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_GL_SetSwapInterval" ret-code)))))
 
 (set! (setter gl-swap-interval)
       gl-swap-interval-set!)

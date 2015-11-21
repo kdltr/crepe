@@ -30,29 +30,39 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export get-num-touch-devices
+        get-num-touch-fingers
+        get-touch-device
+        get-touch-finger
 
-(import scheme chicken)
-(use sdl2-internals extras lolevel srfi-1 srfi-18)
+        ;; TODO: record-gesture!
+        ;; TODO: save-dollar-template!
+        ;; TODO: save-all-dollar-templates!
+        ;; TODO: load-dollar-templates
+        )
 
-(include "lib/shared/error-helpers.scm")
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+(define (get-num-touch-devices)
+  (SDL_GetNumTouchDevices))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define (get-num-touch-fingers touch-id)
+  (SDL_GetNumTouchFingers touch-id))
 
-)
+(define (get-touch-device device-id)
+  (let ((id (SDL_GetTouchDevice device-id)))
+    (if (positive? id)
+        id
+        (abort (sdl-failure "SDL_GetTouchDevice" id)))))
+
+(define (get-touch-finger touch-id index)
+  (let ((finger (SDL_GetTouchFinger touch-id index)))
+    (if (and (finger? finger)
+             (not (struct-null? finger)))
+        finger
+        (abort (sdl-failure "SDL_GetTouchFinger" #f)))))
+
+
+;; TODO: record-gesture!
+;; TODO: save-dollar-template!
+;; TODO: save-all-dollar-templates!
+;; TODO: load-dollar-templates

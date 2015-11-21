@@ -61,5 +61,5 @@
 (define (make-palette* #!optional (ncolors 256))
   (let ((palette (SDL_AllocPalette ncolors)))
     (if (struct-null? palette)
-        #f
+        (abort (sdl-failure "SDL_AllocPalette" #f))
         palette)))

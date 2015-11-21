@@ -34,6 +34,12 @@
 ;;; memory that was allocated, then returns the value(s) of the final
 ;;; expression of the body. Supports multiple return values.
 ;;;
+;;; IMPORTANT: For performance reasons, this macro is not designed to
+;;; automatically free the memory if an exception is signalled from
+;;; the body. If you intend to signal an exception from the body (e.g.
+;;; because an SDL function failed), you should manually free the
+;;; memory before signalling the exception.
+;;;
 ;;; This is useful for wrapping C functions that use "output
 ;;; parameters", i.e. the function accepts some pointers, and modifies
 ;;; the values of the pointers as a way of returning multiple results.

@@ -6,13 +6,11 @@
 
 
 (define (draw-player player)
-  (let ((w (surface-w character-surface))
-        (h (surface-h character-surface)))
-    (blit-surface! character-surface
-                   #f
-                   win-surface
-                   (make-rect (* player +column-space+)
-                              (- +height+ h)))))
+  (let ((w (sprite-w character-surface))
+        (h (sprite-h character-surface)))
+    (show-sprite! character-surface
+                  (* player +column-space+)
+                  (- +height+ h))))
 
 (define (crepe-surface state wiggle)
   (match state
@@ -32,37 +30,34 @@
          (speed (match state (($ descend-state speed) speed) (else +ascend-speed+)))
          (wiggle (sin (/ clock (/ speed 9))))
          (surface (crepe-surface state wiggle)))
-    (blit-surface!
+    (show-sprite!
      surface
-     #f
-     win-surface
-     (make-rect
-      (round
-       (+ (/ +column-space+ 2)
-          (- (* column +column-space+) (/ (surface-w surface) 2))
-          (if (descend-state? state) (* (quotient +column-space+ 4) wiggle) 0)))
-      (round
-       (crepe-y state clock))))))
+     (round
+      (+ (/ +column-space+ 2)
+         (- (* column +column-space+) (/ (sprite-w surface) 2))
+         (if (descend-state? state) (* (quotient +column-space+ 4) wiggle) 0)))
+     (round
+      (crepe-y state clock)))))
 
 (define (crepe-y state clock)
   (+ +highest-point+
      (* (height clock state)
         (- +lowest-point+ +highest-point+))))
 
-(define char-width (quotient (surface-w font-surface) 10))
+(define char-width (quotient (sprite-w font-surface) 10))
 
 (define (draw-score score)
   (draw-score-text!)
   (let loop ((text (number->list score))
-             (x (surface-w score-text-surface)))
+             (x (sprite-w score-text-surface)))
     (unless (null? text)
-      (blit-surface! font-surface
-                     (make-rect (* (car text) char-width)
-                                0
-                                char-width
-                                (surface-h font-surface))
-                     win-surface
-                     (make-rect x 5))
+      (SDL_RenderCopy renderer
+                      (sprite-texture font-surface)
+                      (make-rect (* (car text) char-width)
+                                 0
+                                 char-width
+                                 (sprite-h font-surface))
+                      (make-rect x 5 char-width (sprite-h font-surface)))
       (loop (cdr text) (+ x char-width)))))
 
 (define (number->list n)
@@ -70,34 +65,28 @@
        (string->list (number->string n))))
 
 (define (draw-score-text!)
-  (blit-surface!
-   score-text-surface
-   #f
-   win-surface
-   (make-rect 0 5)))
+  (show-sprite! score-text-surface 0 5))
 
 (define (draw-lives lives)
   (let ((orig-x (- +width+
-                   (surface-w lives-text-surface)
-                   (* +initial-lives+ (surface-w heart-surface))
+                   (sprite-w lives-text-surface)
+                   (* +initial-lives+ (sprite-w heart-surface))
                    5)))
-    (blit-surface! lives-text-surface #f
-                   win-surface (make-rect orig-x 5))
+    (show-sprite! lives-text-surface orig-x 5)
     (let loop ((n lives)
-               (x (+ orig-x (surface-w lives-text-surface))))
+               (x (+ orig-x (sprite-w lives-text-surface))))
       (unless (zero? n)
         (begin
-          (blit-surface! heart-surface #f
-                         win-surface (make-rect x 5))
-          (loop (sub1 n) (+ x (surface-w heart-surface))))))))
+          (show-sprite! heart-surface x 5)
+          (loop (sub1 n) (+ x (sprite-w heart-surface))))))))
 
 (define (draw-game player lives score board clock)
-  (blit-surface! background-surface #f win-surface #f)
+  (show-sprite! background-surface 0 0)
   (draw-player player)
   (for-each (draw-crepe clock) board)
   (draw-score score)
   (draw-lives lives)
-  (update-window-surface! win)
+  (SDL_RenderPresent renderer)
   )
 
 (define (start-game)

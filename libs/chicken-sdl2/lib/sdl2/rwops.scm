@@ -41,25 +41,41 @@
 
 
 (define (rw-from-file path mode)
-  (SDL_RWFromFile path mode))
+  (let ((rwops (SDL_RWFromFile path mode)))
+    (if (and (rwops? rwops) (not (struct-null? rwops)))
+        rwops
+        (abort (sdl-failure "SDL_RWFromFile" #f)))))
 
 (define (rw-from-const-mem pointer size)
-  (SDL_RWFromConstMem pointer size))
+  (let ((rwops (SDL_RWFromConstMem pointer size)))
+    (if (and (rwops? rwops) (not (struct-null? rwops)))
+        rwops
+        (abort (sdl-failure "SDL_RWFromConstMem" #f)))))
 
 (define (rw-from-mem pointer size)
-  (SDL_RWFromMem pointer size))
+  (let ((rwops (SDL_RWFromMem pointer size)))
+    (if (and (rwops? rwops) (not (struct-null? rwops)))
+        rwops
+        (abort (sdl-failure "SDL_RWFromMem" #f)))))
 
 
 (define (rw-from-blob blob)
-  (SDL_RWFromMem
-   (make-locative blob) (blob-size blob)))
+  (let ((rwops (SDL_RWFromMem
+                (make-locative blob) (blob-size blob))))
+    (if (and (rwops? rwops) (not (struct-null? rwops)))
+        rwops
+        (abort (sdl-failure "SDL_RWFromMem" #f)))))
 
 (define (rw-from-string str)
-  (SDL_RWFromMem
-   (make-locative str) (string-length str)))
+  (let ((rwops (SDL_RWFromMem
+                (make-locative str) (string-length str))))
+    (if (and (rwops? rwops) (not (struct-null? rwops)))
+        rwops
+        (abort (sdl-failure "SDL_RWFromMem" #f)))))
 
 
 (define (rw-close! rwops)
-  (let ((response (SDL_RWclose rwops)))
-    (%nullify-struct! rwops)
-    response))
+  (let ((ret-code (SDL_RWclose rwops)))
+    (if (zero? ret-code)
+        (%nullify-struct! rwops)
+        (abort (sdl-failure "SDL_RWclose" ret-code)))))

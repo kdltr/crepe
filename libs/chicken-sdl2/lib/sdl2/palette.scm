@@ -35,25 +35,19 @@
         palette-colours palette-colours-set!)
 
 
-(define (assert-palette-bounds fn-name palette i)
-  (when (or (< i 0) (>= i (palette-ncolors palette)))
-    (error fn-name
-           (sprintf "palette index out of bounds [0, ~A]"
-                    (- (palette-ncolors palette) 1))
-           i)))
-
-
 ;;; Sets the palette color at index i to a copy of the given
 ;;; sdl2:color. Throws an error if i is out of bounds.
 (define (palette-set! palette i color)
-  (assert-palette-bounds 'palette-set! palette i)
+  (assert-bounds i 0 (sub1 (palette-ncolors palette))
+                 "index out of bounds" 'palette-set!)
   (SDL_SetPaletteColors palette color 1 i))
 
 
 ;;; Returns a copy of the palette color at index i, as a sdl2:color
 ;;; instance. Throws an error if i is out of bounds.
 (define (palette-ref palette i)
-  (assert-palette-bounds 'palette-ref palette i)
+  (assert-bounds i 0 (sub1 (palette-ncolors palette))
+                 "index out of bounds" 'palette-ref)
   (let ((color (alloc-color)))
     (%read-color-array color (%palette-colors palette) i)
     color))
@@ -67,16 +61,25 @@
 ;;; vector of sdl2:color instances. firstcolor specifies the first
 ;;; index in the palette to start setting. In other words, palette
 ;;; index firstcolor is set to the first color in colors-vec, palette
-;;; index firstcolor+1 is set to the second color, and so on. If there
-;;; are too many colors in the vector, the extra colors will be
-;;; ignored and this procedure will return -1.
+;;; index firstcolor+1 is set to the second color, and so on.
+;;;
+;;; If there are too many colors in the vector, the extra colors will
+;;; be ignored and this procedure will return #f. If all given colors
+;;; were set, this procedure will return #t.
+(: palette-colors-set!
+   ((struct sdl2:palette)
+    (vector-of (struct sdl2:color))
+    #!optional fixnum
+    -> boolean))
 (define (palette-colors-set! palette colors-vec
                              #!optional (firstcolor 0))
-  (SDL_SetPaletteColors
-   palette
-   (%color-vector->array colors-vec)
-   firstcolor
-   (vector-length colors-vec)))
+  (assert (not (struct-null? palette)))
+  (assert-bounds firstcolor 0 (sub1 (palette-ncolors palette))
+                 "firstcolor out of bounds" 'palette-colors-set!)
+  (with-temp-mem ((colors-array (%color-vector->array colors-vec)))
+    (zero? (SDL_SetPaletteColors
+            palette colors-array firstcolor
+            (vector-length colors-vec)))))
 
 
 ;;; Returns a copy of all the colors in the palette, as a Scheme
@@ -87,7 +90,8 @@
    (palette-ncolors palette)))
 
 (set! (setter palette-colors)
-      palette-colors-set!)
+      (lambda (palette colors-vec)
+        (palette-colors-set! palette colors-vec)))
 
 
 (define palette-colours      palette-colors)

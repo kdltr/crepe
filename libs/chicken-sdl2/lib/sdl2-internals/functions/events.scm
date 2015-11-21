@@ -51,17 +51,7 @@
         SDL_DelEventWatch
         SDL_FilterEvents
         SDL_GetEventFilter
-        SDL_SetEventFilter
-
-        SDL_GetNumTouchDevices
-        SDL_GetNumTouchFingers
-        SDL_GetTouchDevice
-        SDL_GetTouchFinger
-
-        SDL_RecordGesture
-        SDL_SaveDollarTemplate
-        SDL_SaveAllDollarTemplates
-        SDL_LoadDollarTemplates)
+        SDL_SetEventFilter)
 
 
 (define-function-binding SDL_EventState
@@ -148,38 +138,3 @@
   args: ((SDL_EventFilter filter)
          (c-pointer userdata)))
 
-
-(define-function-binding SDL_GetNumTouchDevices
-  return: (int num-touch-devices))
-
-(define-function-binding SDL_GetNumTouchFingers
-  return: (int num-touch-devices)
-  args: ((SDL_TouchID touch-id)))
-
-(define-function-binding SDL_GetTouchDevice
-  return: (SDL_TouchID device-id)
-  args: ((int index)))
-
-(define-function-binding SDL_GetTouchFinger
-  return: (SDL_Finger* finger-or-null)
-  args: ((SDL_TouchID touch-id)
-         (int index)))
-
-
-(define-function-binding SDL_RecordGesture
-  return: (bool success?)
-  args: ((SDL_TouchID touch-id)))
-
-(define-function-binding SDL_SaveDollarTemplate
-  return: (bool success?)
-  args: ((SDL_GestureID gesture-id)
-         (SDL_RWops* dst)))
-
-(define-function-binding SDL_SaveAllDollarTemplates
-  return: (int num-templates-saved)
-  args: ((SDL_RWops* dst)))
-
-(define-function-binding SDL_LoadDollarTemplates
-  return: (int num-templates-loaded)
-  args: ((SDL_TouchID touch-id)
-         (SDL_RWops* src)))

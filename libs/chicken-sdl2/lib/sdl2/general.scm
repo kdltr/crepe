@@ -58,11 +58,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; INITIALIZATION AND SHUTDOWN
 
+(: init!
+   (#!optional (or (list-of symbol) fixnum) -> void))
 (define (init! #!optional (flags '(everything)))
-  (= 0 (SDL_Init (pack-init-flags flags))))
+  (let ((ret-code (SDL_Init (pack-init-flags flags))))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_Init" ret-code)))))
 
+(: init-subsystem!
+   ((or (list-of symbol) fixnum) -> void))
 (define (init-subsystem! flags)
-  (= 0 (SDL_InitSubSystem (pack-init-flags flags))))
+  (let ((ret-code (SDL_InitSubSystem (pack-init-flags flags))))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_InitSubSystem" ret-code)))))
 
 (define (quit!)
   (SDL_Quit))
@@ -124,14 +132,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; CLIP BOARD
 
+(: has-clipboard-text?
+   (-> boolean))
 (define (has-clipboard-text?)
   (SDL_HasClipboardText))
 
+(: get-clipboard-text
+   (-> string))
 (define (get-clipboard-text)
-  (SDL_GetClipboardText))
+  (or (SDL_GetClipboardText)
+      (abort (sdl-failure "SDL_GetClipboardText" #f))))
 
+(: set-clipboard-text!
+   (string -> void))
 (define (set-clipboard-text! text)
-  (SDL_SetClipboardText text))
+  (let ((ret-code (SDL_SetClipboardText text)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetClipboardText" ret-code)))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -55,7 +55,7 @@
         window-fullscreen      window-fullscreen-set!
         ;; TODO: window-gamma-ramp
         ;; TODO: window-gamma-ramp-set!
-        window-grab            window-grab-set!
+        window-grab?           window-grab-set!
         window-icon-set!
         window-id
         window-maximum-size    window-maximum-size-set!
@@ -84,11 +84,14 @@
                 pos)))))
 
 (define (create-window! title x y w h #!optional (flags '()))
-  (SDL_CreateWindow
-   title
-   (%window-pos->int x "x") (%window-pos->int y "y")
-   w h
-   (pack-window-flags flags)))
+  (let ((window (SDL_CreateWindow
+                 title
+                 (%window-pos->int x "x") (%window-pos->int y "y")
+                 w h
+                 (pack-window-flags flags))))
+    (if (and (window? window) (not (struct-null? window)))
+        window
+        (abort (sdl-failure "SDL_CreateWindow" #f)))))
 
 
 (define (get-window-from-id id)
@@ -103,13 +106,20 @@
 ;;; UPDATE WINDOW SURFACE
 
 (define (update-window-surface! window)
-  (= 0 (SDL_UpdateWindowSurface window)))
+  (let ((ret-code (SDL_UpdateWindowSurface window)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_UpdateWindowSurface" ret-code)))))
+
 
 (define (update-window-surface-rects! window rects)
   (assert (every rect? rects))
   (with-temp-mem ((rect-array (%rect-list->array rects)))
-    (= 0 (SDL_UpdateWindowSurfaceRects
-          window rect-array (length rects)))))
+    (let ((ret-code (SDL_UpdateWindowSurfaceRects
+                     window rect-array (length rects))))
+      (unless (zero? ret-code)
+        (free rect-array)
+        (abort (sdl-failure "SDL_UpdateWindowSurfaceRects" ret-code))))))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -150,7 +160,9 @@
 
 
 (define (window-brightness-set! window brightness)
-  (SDL_SetWindowBrightness window brightness))
+  (let ((ret-code (SDL_SetWindowBrightness window brightness)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetWindowBrightness" ret-code)))))
 
 (define (window-brightness window)
   (SDL_GetWindowBrightness window))
@@ -164,16 +176,29 @@
 
 
 (define (window-display-index window)
-  (SDL_GetWindowDisplayIndex window))
+  (let ((index (SDL_GetWindowDisplayIndex window)))
+    (if (negative? index)
+        (abort (sdl-failure "SDL_GetWindowDisplayIndex" index))
+        index)))
 
 
-(define (window-display-mode-set! window mode)
-  (SDL_SetWindowDisplayMode window mode))
-
+(: window-display-mode
+   ((or (struct sdl2:window) pointer) -> (struct sdl2:display-mode)))
 (define (window-display-mode window)
   (let ((display-mode (alloc-display-mode)))
-    (SDL_GetWindowDisplayMode window display-mode)
-    display-mode))
+    (let ((ret-code (SDL_GetWindowDisplayMode window display-mode)))
+      (if (zero? ret-code)
+          display-mode
+          (abort (sdl-failure "SDL_GetWindowDisplayMode" ret-code))))))
+
+(: window-display-mode-set!
+   ((or (struct sdl2:window) pointer)
+    (or (struct sdl2:display-mode) pointer)
+    -> void))
+(define (window-display-mode-set! window mode)
+  (let ((ret-code (SDL_SetWindowDisplayMode window mode)))
+    (unless (zero? ret-code)
+      (abort (sdl-failure "SDL_SetWindowDisplayMode" ret-code)))))
 
 (set! (setter window-display-mode)
       window-display-mode-set!)
@@ -203,19 +228,19 @@
       #f))))
 
 (: window-fullscreen-set!
-   ((struct sdl2:window) (or symbol false fixnum) -> fixnum))
+   ((struct sdl2:window) (or symbol false fixnum) -> void))
 (define (window-fullscreen-set! window mode)
-  (SDL_SetWindowFullscreen
-   window
-   (if (integer? mode)
-       mode
-       (case mode
-         ((fullscreen #t) SDL_WINDOW_FULLSCREEN)
-         ((fullscreen-desktop) SDL_WINDOW_FULLSCREEN_DESKTOP)
-         ((#f) 0)
-         (else
-          (error 'window-fullscreen-set!
-                 "Invalid fullscreen mode" mode))))))
+  (let ((mode-int
+         (if (integer? mode)
+             mode
+             (case mode
+               ((fullscreen #t) SDL_WINDOW_FULLSCREEN)
+               ((fullscreen-desktop) SDL_WINDOW_FULLSCREEN_DESKTOP)
+               ((#f) 0)
+               (else (error 'window-fullscreen-set!
+                            "Invalid fullscreen mode" mode))))))
+    (let ((ret-code (SDL_SetWindowFullscreen window mode-int)))
+      (abort (sdl-failure "SDL_SetWindowFullscreen" ret-code)))))
 
 (set! (setter window-fullscreen) window-fullscreen-set!)
 
@@ -227,10 +252,10 @@
 (define (window-grab-set! window grab?)
   (SDL_SetWindowGrab window grab?))
 
-(define (window-grab window)
+(define (window-grab? window)
   (SDL_GetWindowGrab window))
 
-(set! (setter window-grab)
+(set! (setter window-grab?)
       window-grab-set!)
 
 
@@ -306,7 +331,10 @@
 
 
 (define (window-surface window)
-  (SDL_GetWindowSurface window))
+  (let ((surface (SDL_GetWindowSurface window)))
+    (if (and (surface? surface) (not (struct-null? surface)))
+        surface
+        (abort (sdl-failure "SDL_GetWindowSurface" #f)))))
 
 
 (define (window-title-set! window title)
