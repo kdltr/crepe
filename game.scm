@@ -20,7 +20,7 @@
      crepe-up-surface)
     (($ stick-state unstick)
      (if unstick crepe-unstick-surface crepe-stick-surface))
-    (($ descend-state speed time)
+    (($ descend-state)
      (cond
       ((< wiggle -0.4) crepe-left-surface)
       ((> 0.4 wiggle -0.4) crepe-down-surface)
@@ -148,4 +148,3 @@
               (make-ascend-state time: clock))
              (else
               state)))))
-
