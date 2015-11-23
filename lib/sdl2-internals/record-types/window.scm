@@ -30,29 +30,21 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export window?
+        wrap-window
+        unwrap-window
+        %window-pointer
+        %window-pointer-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-struct-record-type
+  sdl2:window "SDL_Window"
+  pred:    window?
+  wrap:    wrap-window
+  unwrap:  unwrap-window
+  (pointer %window-pointer
+           %window-pointer-set!))
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-struct-record-printer sdl2:window
+  %window-pointer
+  show-address: #f
+  (id SDL_GetWindowID))

@@ -30,29 +30,44 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export color?
+        wrap-color
+        unwrap-color
+        %color-pointer
+        %color-pointer-set!
+        free-color!
+        alloc-color*
+        alloc-color
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+        colour?
+        free-colour!
+        alloc-colour*
+        alloc-colour)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-record-type
+  sdl2:color "SDL_Color"
+  pred:    color?
+  wrap:    wrap-color
+  unwrap:  unwrap-color
+  (pointer %color-pointer
+           %color-pointer-set!))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+(define-struct-memory-helpers
+  "SDL_Color"
+  using: (wrap-color
+          color?
+          %color-pointer
+          %color-pointer-set!)
+  define: (free-color!
+           alloc-color*
+           alloc-color))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-struct-record-printer sdl2:color
+  %color-pointer
+  show-address: #f
+  (#f color->list))
 
-)
+(define colour?       color?)
+(define free-colour!  free-color!)
+(define alloc-colour* alloc-color*)
+(define alloc-colour  alloc-color)

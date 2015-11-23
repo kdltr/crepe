@@ -30,29 +30,33 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export controller-axis-event?
+        controller-axis-event-which
+        controller-axis-event-which-set!
+        controller-axis-event-axis
+        controller-axis-event-axis-set!
+        controller-axis-event-value
+        controller-axis-event-value-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-event-type "SDL_ControllerAxisEvent"
+  types: (SDL_CONTROLLERAXISMOTION)
+  pred:  controller-axis-event?
+  print: ((which controller-axis-event-which)
+          (axis controller-axis-event-axis)
+          (value controller-axis-event-value))
+  ("caxis.which"
+   type:   SDL_JoystickID
+   getter: controller-axis-event-which
+   setter: controller-axis-event-which-set!
+   guard:  noop-guard)
+  ("caxis.axis"
+   type:   Uint8
+   getter: controller-axis-event-axis
+   setter: controller-axis-event-axis-set!
+   guard:  (Uint8-guard "sdl2:controller-axis-event field axis"))
+  ("caxis.value"
+   type:   Sint16
+   getter: controller-axis-event-value
+   setter: controller-axis-event-value-set!
+   guard:  (Sint16-guard "sdl2:controller-axis-event field value")))

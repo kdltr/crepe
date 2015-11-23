@@ -30,29 +30,41 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export joy-ball-event?
+        joy-ball-event-which
+        joy-ball-event-which-set!
+        joy-ball-event-ball
+        joy-ball-event-ball-set!
+        joy-ball-event-xrel
+        joy-ball-event-xrel-set!
+        joy-ball-event-yrel
+        joy-ball-event-yrel-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-event-type "SDL_JoyBallEvent"
+  types: (SDL_JOYBALLMOTION)
+  pred:  joy-ball-event?
+  print: ((which joy-ball-event-which)
+          (ball joy-ball-event-ball)
+          (xrel joy-ball-event-xrel)
+          (yrel joy-ball-event-yrel))
+  ("jball.which"
+   type:   SDL_JoystickID
+   getter: joy-ball-event-which
+   setter: joy-ball-event-which-set!
+   guard:  noop-guard)
+  ("jball.ball"
+   type:   Uint8
+   getter: joy-ball-event-ball
+   setter: joy-ball-event-ball-set!
+   guard:  (Uint8-guard "sdl2:joy-ball-event field ball"))
+  ("jball.xrel"
+   type:   Sint16
+   getter: joy-ball-event-xrel
+   setter: joy-ball-event-xrel-set!
+   guard:  (Sint16-guard "sdl2:joy-ball-event field xrel"))
+  ("jball.yrel"
+   type:   Sint16
+   getter: joy-ball-event-yrel
+   setter: joy-ball-event-yrel-set!
+   guard:  (Sint16-guard "sdl2:joy-ball-event field yrel")))

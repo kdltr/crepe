@@ -30,29 +30,34 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export point?
+        wrap-point
+        unwrap-point
+        %point-pointer
+        %point-pointer-set!
+        free-point!
+        alloc-point*
+        alloc-point)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-struct-record-type
+  sdl2:point "SDL_Point"
+  pred:    point?
+  wrap:    wrap-point
+  unwrap:  unwrap-point
+  (pointer %point-pointer
+           %point-pointer-set!))
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-memory-helpers
+  "SDL_Point"
+  using: (wrap-point
+          point?
+          %point-pointer
+          %point-pointer-set!)
+  define: (free-point!
+           alloc-point*
+           alloc-point))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-struct-record-printer sdl2:point
+  %point-pointer
+  show-address: #f
+  (#f point->list))

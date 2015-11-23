@@ -30,29 +30,39 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export pixel-format?
+        wrap-pixel-format
+        unwrap-pixel-format
+        %pixel-format-pointer
+        %pixel-format-pointer-set!
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+        free-pixel-format!)
 
-(include "lib/shared/error-helpers.scm")
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+(define-struct-record-type
+  sdl2:pixel-format "SDL_PixelFormat"
+  pred:    pixel-format?
+  wrap:    wrap-pixel-format
+  unwrap:  unwrap-pixel-format
+  (pointer %pixel-format-pointer
+           %pixel-format-pointer-set!))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
 
-)
+(define (free-pixel-format! pixel-format)
+  (define foreign-freer
+    ;; Cannot use SDL_PixelFormat* foreign type because it has
+    ;; not been defined yet.
+    (foreign-lambda void "SDL_FreeFormat"
+                    (c-pointer "SDL_PixelFormat")))
+  (assert (pixel-format? pixel-format))
+  (unless (struct-null? pixel-format)
+    (foreign-freer (%pixel-format-pointer pixel-format))
+    (%nullify-struct! pixel-format))
+  pixel-format)
+
+
+(define-struct-record-printer sdl2:pixel-format
+  %pixel-format-pointer
+  show-address: #f
+  (#f pixel-format-format)
+  (palette pixel-format-palette))

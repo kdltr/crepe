@@ -30,29 +30,51 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+;;; All SDL events have a type and timestamp. These functions can be
+;;; used on any kind of SDL event.
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(export make-event
+        make-event*
 
-(include "lib/shared/error-helpers.scm")
+        event-type-raw
+        event-type-raw-set!
+        event-type
+        event-type-set!
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+        event-timestamp
+        event-timestamp-set!)
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
 
-)
+(define (make-event #!optional (type 'first))
+  (let ((event (alloc-event)))
+    (event-type-set! event type)
+    event))
+
+(define (make-event* #!optional (type 'first))
+  (let ((event (alloc-event*)))
+    (event-type-set! event type)
+    event))
+
+
+(define-struct-field-accessors
+  SDL_Event*
+  event?
+  ("type"
+   type:   SDL_EventType
+   getter: event-type-raw
+   setter: event-type-raw-set!
+   guard:  noop-guard)
+  ("common.timestamp"
+   type:   Uint32
+   getter: event-timestamp
+   setter: event-timestamp-set!
+   guard:  (Uint32-guard "sdl2:event field timestamp")))
+
+
+(define-enum-accessor
+  getter: (event-type
+           raw:  event-type-raw
+           conv: event-type->symbol)
+  setter: (event-type-set!
+           raw:  event-type-raw-set!
+           conv: symbol->event-type))

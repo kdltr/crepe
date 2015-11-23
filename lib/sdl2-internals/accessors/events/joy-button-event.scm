@@ -30,29 +30,33 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export joy-button-event?
+        joy-button-event-which
+        joy-button-event-which-set!
+        joy-button-event-button
+        joy-button-event-button-set!
+        joy-button-event-state
+        joy-button-event-state-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-event-type "SDL_JoyButtonEvent"
+  types: (SDL_JOYBUTTONDOWN
+          SDL_JOYBUTTONUP)
+  pred:  joy-button-event?
+  print: ((which joy-button-event-which)
+          (button joy-button-event-button))
+  ("jbutton.which"
+   type:   SDL_JoystickID
+   getter: joy-button-event-which
+   setter: joy-button-event-which-set!
+   guard:  noop-guard)
+  ("jbutton.button"
+   type:   Uint8
+   getter: joy-button-event-button
+   setter: joy-button-event-button-set!
+   guard:  (Uint8-guard "sdl2:joy-button-event field button"))
+  ("jbutton.state"
+   type:   bool
+   getter: joy-button-event-state
+   setter: joy-button-event-state-set!
+   guard:  noop-guard))

@@ -30,29 +30,46 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+;;; Macro-time if expression. Expands to one expression or the other,
+;;; depending on whether the first argument is #f at macro expansion
+;;; time. This is a building block macro used for conditional
+;;; expansion in other macros.
+;;;
+;;;   (macro-if a
+;;;     (b)
+;;;     (c))
+;;;   ;; Expands to (b)
+;;;
+;;;   (macro-if #f
+;;;     (b)
+;;;     (c))
+;;;   ;; Expands to (c)
+;;;
+(define-syntax macro-if
+  (syntax-rules ()
+    ;; First argument is #f, so expand to false-expr.
+    ((macro-if #f true-expr false-expr)
+     false-expr)
+    ;; First argument is anything else, so expand to true-expr.
+    ((macro-if x true-expr false-expr)
+     true-expr)))
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+;;; Macro-time when expression. If the first argument is not #f (at
+;;; macro expansion time), expands to a (begin ...) expression with
+;;; the remaining expressions. If the first argument is #f, expands to
+;;; (void). This is a building block macro used for conditional
+;;; expansion in other macros.
+;;;
+;;;   (macro-when a
+;;;     (b) (c) (d))
+;;;   ;; Expands to (begin (b) (c) (d))
+;;;
+;;;   (macro-when #f
+;;;     (b) (c) (d))
+;;;   ;; Expands to (void)
+;;;
+(define-syntax macro-when
+  (syntax-rules ()
+    ((macro-when x expr ...)
+     (macro-if x (begin expr ...) (void)))))

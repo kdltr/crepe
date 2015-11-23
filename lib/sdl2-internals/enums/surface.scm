@@ -30,29 +30,15 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export blend-mode->symbol
+        symbol->blend-mode)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-enum-mappings
+  type: SDL_BlendMode
+  value->symbol: blend-mode->symbol
+  symbol->value: symbol->blend-mode
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+  ((SDL_BLENDMODE_NONE   none)
+   (SDL_BLENDMODE_BLEND  blend)
+   (SDL_BLENDMODE_ADD    add)
+   (SDL_BLENDMODE_MOD    mod)))

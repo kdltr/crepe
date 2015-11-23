@@ -30,29 +30,70 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export point-x  point-x-set!
+        point-y  point-y-set!
+        make-point
+        make-point*
+        point-set!
+        point->list
+        point=?
+        copy-point  copy-point*)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-field-accessors
+  SDL_Point*
+  point?
+  ("x"
+   type:   Sint32
+   getter: point-x
+   setter: point-x-set!
+   guard:  (Sint32-guard "sdl2:point field x"))
+  ("y"
+   type:   Sint32
+   getter: point-y
+   setter: point-y-set!
+   guard:  (Sint32-guard "sdl2:point field y")))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
 
-)
+(define (make-point #!optional (x 0) (y 0))
+  (point-set! (alloc-point) x y))
+
+(define (make-point* #!optional (x 0) (y 0))
+  (point-set! (alloc-point*) x y))
+
+
+(define (point-set! point #!optional x y)
+  (when x (point-x-set! point x))
+  (when y (point-y-set! point y))
+  point)
+
+
+(define (point->list point)
+  (list (point-x point)
+        (point-y point)))
+
+
+(define (point=? point1 point2)
+  (define foreign-equals
+    (foreign-lambda*
+     bool ((SDL_Point* p1) (SDL_Point* p2))
+     "C_return(((p1->x == p2->x) && (p1->y == p2->y))
+               ? 1 : 0);"))
+  (foreign-equals point1 point2))
+
+
+(define %copy-point!
+  (foreign-lambda*
+   void ((SDL_Point* src) (SDL_Point* dest))
+   "*dest = *src;"))
+
+(define (copy-point point)
+  (let ((dest (alloc-point)))
+    (%copy-point! point dest)
+    dest))
+
+(define (copy-point* point)
+  (let ((dest (alloc-point*)))
+    (%copy-point! point dest)
+    dest))

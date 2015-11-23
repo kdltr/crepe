@@ -30,29 +30,46 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export user-event?
+        user-event-window-id
+        user-event-window-id-set!
+        user-event-code
+        user-event-code-set!
+        user-event-data1-raw
+        user-event-data1-raw-set!
+        user-event-data2-raw
+        user-event-data2-raw-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-event-type "SDL_UserEvent"
+  types: (SDL_USEREVENT)
+  pred:  user-event?
+  print: ((code user-event-code))
+  ("user.windowID"
+   type:   Uint32
+   getter: user-event-window-id
+   setter: user-event-window-id-set!
+   guard:  (Uint32-guard "sdl2:user-event field windowID"))
+  ("user.code"
+   type:   Sint32
+   getter: user-event-code
+   setter: user-event-code-set!
+   guard:  (Sint32-guard "sdl2:user-event field code"))
+  ("user.data1"
+   type:   c-pointer
+   getter: user-event-data1-raw
+   setter: user-event-data1-raw-set!
+   guard:  noop-guard)
+  ("user.data2"
+   type:   c-pointer
+   getter: user-event-data2-raw
+   setter: user-event-data2-raw-set!
+   guard:  noop-guard))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define (user-event? event)
+  ;; Any event type of SDL_USEREVENT or greater is a user event.
+  ;; User event types are registered with SDL_RegisterEvents.
+  (and (event? event)
+       (>= (event-type-raw event)
+           SDL_USEREVENT)))

@@ -30,29 +30,39 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export %rwops-size
+        %rwops-seek
+        %rwops-read
+        %rwops-write
+        %rwops-close
+        rwops-type-raw
+        rwops-type)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-field-accessors
+  SDL_RWops*
+  rwops?
+  ("size"
+   type:   (function Sint64 (SDL_RWops*))
+   getter: %rwops-size)
+  ("seek"
+   type:   (function Sint64 (SDL_RWops* Sint64 int))
+   getter: %rwops-seek)
+  ("read"
+   type:   (function size_t (SDL_RWops* c-pointer size_t size_t))
+   getter: %rwops-read)
+  ("write"
+   type:   (function size_t (SDL_RWops* c-pointer size_t size_t))
+   getter: %rwops-write)
+  ("close"
+   type:   (function int (SDL_RWops*))
+   getter: %rwops-close)
+  ("type"
+   type:   Uint32
+   getter: rwops-type-raw))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-enum-accessor
+  getter: (rwops-type
+           raw:   rwops-type-raw
+           conv:  rwops-type-enum->symbol))

@@ -1,5 +1,5 @@
 ;;
-;; chicken-sdl2: CHICKEN Scheme bindings to Simple DirectMedia Layer 2
+;; chicken-sdl2: CHICKEN Scheme bindings to Simple DipointMedia Layer 2
 ;;
 ;; Copyright © 2013, 2015  John Croisant.
 ;; All rights reserved.
@@ -20,8 +20,8 @@
 ;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 ;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 ;; FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-;; COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-;; INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+;; COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIPOINT,
+;; INDIPOINT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 ;; (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 ;; SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
 ;; HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
@@ -30,29 +30,23 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export %allocate-point-array
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+        %read-point-array
+        %write-point-array
 
-(include "lib/shared/error-helpers.scm")
+        %point-array->list
+        %point-list->array)
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-allocator %allocate-point-array "SDL_Point")
 
-)
+(define-array-reader %read-point-array
+  "SDL_Point*" SDL_Point*)
+(define-array-writer %write-point-array
+  "SDL_Point*" SDL_Point*)
+
+(define-array->list %point-array->list
+  %read-point-array (alloc-point))
+(define-list->array %point-list->array
+  %allocate-point-array %write-point-array)

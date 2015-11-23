@@ -30,29 +30,51 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; MOUSE BUTTON
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(export mouse-button->symbol
+        symbol->mouse-button)
 
-(include "lib/shared/error-helpers.scm")
+(define-enum-mappings
+  type: SDL_MouseButton
+  value->symbol: mouse-button->symbol
+  symbol->value: symbol->mouse-button
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+  ((SDL_BUTTON_LEFT    left)
+   (SDL_BUTTON_MIDDLE  middle)
+   (SDL_BUTTON_RIGHT   right)
+   (SDL_BUTTON_X1      x1)
+   (SDL_BUTTON_X2      x2)))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
 
-)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; MOUSE BUTTON MASK
+
+(export mouse-button-mask->symbol
+        symbol->mouse-button-mask
+        pack-mouse-button-masks
+        unpack-mouse-button-masks)
+
+(define-enum-mappings
+  type: SDL_MouseButtonMask
+  value->symbol: mouse-button-mask->symbol
+  symbol->value: symbol->mouse-button-mask
+
+  ((SDL_BUTTON_LMASK   left)
+   (SDL_BUTTON_MMASK   middle)
+   (SDL_BUTTON_RMASK   right)
+   (SDL_BUTTON_X1MASK  x1)
+   (SDL_BUTTON_X2MASK  x2)))
+
+(define-enum-mask-packer pack-mouse-button-masks
+  symbol->mouse-button-mask)
+
+(define-enum-mask-unpacker unpack-mouse-button-masks
+  mouse-button-mask->symbol
+  (list SDL_BUTTON_LMASK
+        SDL_BUTTON_MMASK
+        SDL_BUTTON_RMASK
+        SDL_BUTTON_X1MASK
+        SDL_BUTTON_X2MASK))

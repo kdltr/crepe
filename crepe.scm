@@ -1,11 +1,14 @@
-(use
+(include "libs/chicken-sdl2/sdl2-internals.scm")
+(include "libs/chicken-sdl2/sdl2.scm")
+(include "libs/chicken-sdl2-image/sdl2-image.scm")
+
+(import
   srfi-1
-  sdl2
-  sdl2-internals
-  (prefix sdl2-image img:)
   defstruct
   matchable
-)
+  sdl2-internals
+  sdl2
+  (prefix sdl2-image img:))
 
 (define +width+ 1280)
 (define +height+ 720)

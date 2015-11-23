@@ -30,29 +30,36 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export palette-ncolors  palette-ncolours
+        %palette-colors
+        make-palette
+        make-palette*)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-field-accessors
+  SDL_Palette*
+  palette?
+  ("ncolors"
+   type:   int
+   getter: palette-ncolors)
+  ("colors"
+   type: c-pointer
+   getter: %palette-colors)
+  ;; omitted: version  (internal use)
+  ;; omitted: refcount (internal use)
+  )
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define palette-ncolours palette-ncolors)
 
-)
+
+(define (make-palette #!optional (ncolors 256))
+  (%autofree-struct!
+   (make-palette* ncolors)
+   free-palette!))
+
+(define (make-palette* #!optional (ncolors 256))
+  (let ((palette (SDL_AllocPalette ncolors)))
+    (if (struct-null? palette)
+        (abort (sdl-failure "SDL_AllocPalette" #f))
+        palette)))

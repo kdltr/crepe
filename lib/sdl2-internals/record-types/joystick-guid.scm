@@ -30,29 +30,33 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export joystick-guid?
+        wrap-joystick-guid
+        unwrap-joystick-guid
+        %joystick-guid-pointer
+        %joystick-guid-pointer-set!
+        free-joystick-guid!
+        %alloc-joystick-guid*
+        %alloc-joystick-guid)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-struct-record-type
+  sdl2:joystick-guid "SDL_JoystickGUID"
+  pred:    joystick-guid?
+  wrap:    wrap-joystick-guid
+  unwrap:  unwrap-joystick-guid
+  (pointer %joystick-guid-pointer
+           %joystick-guid-pointer-set!))
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-memory-helpers
+  "SDL_JoystickGUID"
+  using: (wrap-joystick-guid
+          joystick-guid?
+          %joystick-guid-pointer
+          %joystick-guid-pointer-set!)
+  define: (free-joystick-guid!
+           %alloc-joystick-guid*
+           %alloc-joystick-guid))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-struct-record-printer sdl2:joystick-guid
+  %joystick-guid-pointer
+  show-address: #t)

@@ -30,29 +30,59 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export audio-cvt-needed
+        audio-cvt-src-format  audio-cvt-src-format-raw
+        audio-cvt-dst-format  audio-cvt-dst-format-raw
+        audio-cvt-rate-incr
+        audio-cvt-buf-raw
+        audio-cvt-len
+        audio-cvt-len-cvt
+        audio-cvt-len-mult
+        audio-cvt-len-ratio)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-field-accessors
+  SDL_AudioCVT*
+  audio-cvt?
+  ("needed"
+   type:   int
+   getter: audio-cvt-needed)
+  ("src_format"
+   type:   SDL_AudioFormat
+   getter: audio-cvt-src-format-raw)
+  ("dst_format"
+   type:   SDL_AudioFormat
+   getter: audio-cvt-dst-format-raw)
+  ("rate_incr"
+   type:   double
+   getter: audio-cvt-rate-incr)
+  ("buf"
+   type:   Uint8*
+   getter: audio-cvt-buf-raw)
+  ("len"
+   type:   int
+   getter: audio-cvt-len)
+  ("len_cvt"
+   type:   int
+   getter: audio-cvt-len-cvt)
+  ("len_mult"
+   type:   int
+   getter: audio-cvt-len-mult)
+  ("len_ratio"
+   type:   double
+   getter: audio-cvt-len-ratio)
+  ;; omitted: filters (internal use)
+  ;; omitted: filter_index (internal use)
+  )
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-enum-accessor
+  getter: (audio-cvt-src-format
+           raw:   audio-cvt-src-format-raw
+           conv:  audio-format-enum->symbol))
 
-)
+(define-enum-accessor
+  getter: (audio-cvt-dst-format
+           raw:   audio-cvt-dst-format-raw
+           conv:  audio-format-enum->symbol))
+

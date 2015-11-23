@@ -30,29 +30,34 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
-
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
-
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+;;; Temporarily allocates some memory, executes the body, frees the
+;;; memory that was allocated, then returns the value(s) of the final
+;;; expression of the body. Supports multiple return values.
+;;;
+;;; IMPORTANT: For performance reasons, this macro is not designed to
+;;; automatically free the memory if an exception is signalled from
+;;; the body. If you intend to signal an exception from the body (e.g.
+;;; because an SDL function failed), you should manually free the
+;;; memory before signalling the exception.
+;;;
+;;; This is useful for wrapping C functions that use "output
+;;; parameters", i.e. the function accepts some pointers, and modifies
+;;; the values of the pointers as a way of returning multiple results.
+;;;
+;;; Example:
+;;;
+;;;   (with-temp-mem ((w-out (%allocate-int))
+;;;                   (h-out (%allocate-int)))
+;;;     (SDL_GetWindowSize window w-out h-out)
+;;;     (values (pointer-s32-ref w-out)
+;;;             (pointer-s32-ref h-out)))
+;;;
+(define-syntax with-temp-mem
+  (syntax-rules ()
+    ((with-temp-mem ((temp-var alloc-expr) ...)
+       body ...)
+     (let ((temp-var alloc-expr) ...)
+       (receive result-values (begin body ...)
+         (free temp-var)
+         ...
+         (apply values result-values))))))

@@ -30,29 +30,48 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export audio-format-enum->symbol
+        symbol->audio-format-enum)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-foreign-constants int
+  SDL_AUDIO_MASK_BITSIZE
+  SDL_AUDIO_MASK_DATATYPE
+  SDL_AUDIO_MASK_ENDIAN
+  SDL_AUDIO_MASK_SIGNED
+  SDL_MIX_MAXVOLUME
+  SDL_AUDIO_ALLOW_FREQUENCY_CHANGE
+  SDL_AUDIO_ALLOW_FORMAT_CHANGE
+  SDL_AUDIO_ALLOW_CHANNELS_CHANGE
+  SDL_AUDIO_ALLOW_ANY_CHANGE)
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-enum-mappings
+  type: SDL_AudioFormatEnum
+  value->symbol: audio-format-enum->symbol
+  symbol->value: symbol->audio-format-enum
 
-)
+  ((AUDIO_U8      u8)
+   (AUDIO_S8      s8)
+   (AUDIO_U16LSB  u16lsb)
+   (AUDIO_S16LSB  s16lsb)
+   (AUDIO_U16MSB  u16msb)
+   (AUDIO_S16MSB  s16msb)
+   (AUDIO_U16     u16)
+   (AUDIO_S16     s16)
+   (AUDIO_S32LSB  s32lsb)
+   (AUDIO_S32MSB  s32msb)
+   (AUDIO_S32     s32)
+   (AUDIO_F32LSB  f32lsb)
+   (AUDIO_F32MSB  f32msb)
+   (AUDIO_F32     f32)
+   (AUDIO_U16SYS  u16sys)
+   (AUDIO_S16SYS  s16sys)
+   (AUDIO_S32SYS  s32sys)
+   (AUDIO_F32SYS  f32sys)))
+
+
+(define-foreign-constants SDL_AudioStatus
+  SDL_AUDIO_STOPPED
+  SDL_AUDIO_PLAYING
+  SDL_AUDIO_PAUSED)

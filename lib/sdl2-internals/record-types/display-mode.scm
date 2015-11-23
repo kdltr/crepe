@@ -30,29 +30,37 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export display-mode?
+        wrap-display-mode
+        unwrap-display-mode
+        %display-mode-pointer
+        %display-mode-pointer-set!
+        free-display-mode!
+        alloc-display-mode*
+        alloc-display-mode)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-struct-record-type
+  sdl2:display-mode "SDL_DisplayMode"
+  pred:    display-mode?
+  wrap:    wrap-display-mode
+  unwrap:  unwrap-display-mode
+  (pointer %display-mode-pointer
+           %display-mode-pointer-set!))
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-memory-helpers
+  "SDL_DisplayMode"
+  using: (wrap-display-mode
+          display-mode?
+          %display-mode-pointer
+          %display-mode-pointer-set!)
+  define: (free-display-mode!
+           alloc-display-mode*
+           alloc-display-mode))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-struct-record-printer sdl2:display-mode
+  %display-mode-pointer
+  show-address: #f
+  (format display-mode-format)
+  (w display-mode-w)
+  (h display-mode-h)
+  (refresh-rate display-mode-refresh-rate))

@@ -30,29 +30,32 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
-
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
-
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+;;; Like foreign-lambda*, except the function body string is
+;;; constructed dynamically (at macro expansion time) using sprintf.
+;;;
+;;; Usage:
+;;;
+;;;   (foreign-lambda*-with-dynamic-body
+;;;    RETURN-TYPE
+;;;    (ARG-TYPE ...)
+;;;    (BODY-FORMATSTRING FORMAT-ARG ...))
+;;;
+;;; This macro is used within other macros to generate function bodies
+;;; based on a template. For example, a type or field name within the
+;;; function body can be filled in based on the arguments given to the
+;;; high-level macro.
+;;;
+;;; Because the body string is constructed at macro expansion time,
+;;; each FORMAT-ARG must be a literal value like a symbol, string, or
+;;; number.
+;;;
+(define-syntax foreign-lambda*-with-dynamic-body
+  (ir-macro-transformer
+   (lambda (form inject compare?)
+     (let ((return-type (list-ref form 1))
+           (args        (list-ref form 2))
+           (body        (list-ref form 3)))
+       `(foreign-lambda*
+         ,return-type
+         ,args
+         ,(apply sprintf (map strip-syntax body)))))))

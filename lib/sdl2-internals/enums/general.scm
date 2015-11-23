@@ -30,29 +30,52 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; GENERAL
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-foreign-constants int
+  SDL_ENABLE
+  SDL_DISABLE
+  SDL_QUERY
+  SDL_IGNORE
 
-(include "lib/shared/error-helpers.scm")
+  SDL_BYTEORDER
+  SDL_BIG_ENDIAN
+  SDL_LIL_ENDIAN)
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; INIT / SUBSYSTEMS
 
-)
+(export init-flag->symbol
+        symbol->init-flag
+        pack-init-flags
+        unpack-init-flags)
+
+(define-enum-mappings
+  type: Uint32
+  value->symbol: init-flag->symbol
+  symbol->value: symbol->init-flag
+
+  ((SDL_INIT_TIMER           timer)
+   (SDL_INIT_AUDIO           audio)
+   (SDL_INIT_VIDEO           video)
+   (SDL_INIT_JOYSTICK        joystick)
+   (SDL_INIT_HAPTIC          haptic)
+   (SDL_INIT_GAMECONTROLLER  game-controller)
+   (SDL_INIT_EVENTS          events)
+   (SDL_INIT_EVERYTHING      everything)))
+
+(define-enum-mask-packer pack-init-flags
+  symbol->init-flag)
+
+(define-enum-mask-unpacker unpack-init-flags
+  init-flag->symbol
+  (list SDL_INIT_TIMER
+        SDL_INIT_AUDIO
+        SDL_INIT_VIDEO
+        SDL_INIT_JOYSTICK
+        SDL_INIT_HAPTIC
+        SDL_INIT_GAMECONTROLLER
+        SDL_INIT_EVENTS
+        SDL_INIT_EVERYTHING))

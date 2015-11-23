@@ -30,29 +30,47 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export text-input-event?
+        text-input-event-window-id
+        text-input-event-window-id-set!
+        text-input-event-text
+        text-input-event-text-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-event-type "SDL_TextInputEvent"
+  types: (SDL_TEXTINPUT)
+  pred:  text-input-event?
+  print: ((text text-input-event-text))
+  ("text.windowID"
+   type:   Uint32
+   getter: text-input-event-window-id
+   setter: text-input-event-window-id-set!
+   guard:  (Uint32-guard "sdl2:text-input-event field windowID"))
+  ;; See below
+  ;; ("text.text"
+  ;;  type:   "char[SDL_TEXTINPUTEVENT_TEXT_SIZE]"
+  ;;  getter: text-input-event-text
+  ;;  setter: text-input-event-text-set!
+  ;;  guard:  noop-guard)
+  )
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define (text-input-event-text-set! event text)
+  (define foreign-setter
+    (foreign-lambda*
+     c-string ((SDL_Event* event) (c-string text))
+     "strncpy(event->text.text, text, SDL_TEXTINPUTEVENT_TEXT_SIZE);"))
+  (assert (text-input-event? event))
+  (assert (<= (string-length text) SDL_TEXTINPUTEVENT_TEXT_SIZE))
+  (foreign-setter event text))
 
-)
+(define (text-input-event-text event)
+  (define foreign-getter
+    (foreign-lambda*
+     c-string ((SDL_Event* event))
+     "C_return( &(event->text.text) );"))
+  (assert (text-input-event? event))
+  (foreign-getter event))
+
+(set! (setter text-input-event-text)
+      text-input-event-text-set!)

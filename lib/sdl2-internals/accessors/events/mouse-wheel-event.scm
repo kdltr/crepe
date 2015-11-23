@@ -30,29 +30,39 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export mouse-wheel-event?
+        mouse-wheel-event-window-id
+        mouse-wheel-event-window-id-set!
+        mouse-wheel-event-which
+        mouse-wheel-event-which-set!
+        mouse-wheel-event-x
+        mouse-wheel-event-x-set!
+        mouse-wheel-event-y
+        mouse-wheel-event-y-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-event-type "SDL_MouseWheelEvent"
+  types: (SDL_MOUSEWHEEL)
+  pred:  mouse-wheel-event?
+  print: ((x mouse-wheel-event-x)
+          (y mouse-wheel-event-y))
+  ("wheel.windowID"
+   type:   Uint32
+   getter: mouse-wheel-event-window-id
+   setter: mouse-wheel-event-window-id-set!
+   guard:  (Uint32-guard "sdl2:mouse-wheel-event field windowID"))
+  ("wheel.which"
+   type:   Uint32
+   getter: mouse-wheel-event-which
+   setter: mouse-wheel-event-which-set!
+   guard:  (Uint32-guard "sdl2:mouse-wheel-event field which"))
+  ("wheel.x"
+   type:   Sint32
+   getter: mouse-wheel-event-x
+   setter: mouse-wheel-event-x-set!
+   guard:  (Sint32-guard "sdl2:mouse-wheel-event field x"))
+  ("wheel.y"
+   type:   Sint32
+   getter: mouse-wheel-event-y
+   setter: mouse-wheel-event-y-set!
+   guard:  (Sint32-guard "sdl2:mouse-wheel-event field y")))

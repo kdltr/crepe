@@ -30,29 +30,25 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export rwops-type-enum->symbol
+        symbol->rwops-type-enum)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-enum-mappings
+  type: int
+  value->symbol: rwops-type-enum->symbol
+  symbol->value: symbol->rwops-type-enum
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+  ((SDL_RWOPS_UNKNOWN    unknown)
+   (SDL_RWOPS_WINFILE    win-file)
+   (SDL_RWOPS_STDFILE    std-file)
+   (SDL_RWOPS_JNIFILE    jni-file)
+   (SDL_RWOPS_MEMORY     memory)
+   (SDL_RWOPS_MEMORY_RO  memory-ro)))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
 
-)
+
+(define-foreign-constants SDL_RWopsWhenceEnum
+  RW_SEEK_SET
+  RW_SEEK_CUR
+  RW_SEEK_END)

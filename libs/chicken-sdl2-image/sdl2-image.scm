@@ -78,7 +78,6 @@
                   load)
           chicken foreign lolevel)
 
-  (require-library sdl2-internals)
   (import (only sdl2-internals
                 define-function-binding
                 struct-null?

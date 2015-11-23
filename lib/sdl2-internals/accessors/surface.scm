@@ -30,29 +30,45 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export surface-format
+        surface-w
+        surface-h
+        surface-pitch
+        surface-pixels-raw
+        surface-userdata-raw  surface-userdata-raw-set!
+        surface-refcount      surface-refcount-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-struct-field-accessors
+  SDL_Surface*
+  surface?
+  ;; omitted: flags  (internal use)
+  ("format"
+   type:   SDL_PixelFormat*
+   getter: surface-format)
+  ("w"
+   type:   int
+   getter: surface-w)
+  ("h"
+   type:   int
+   getter: surface-h)
+  ("pitch"
+   type:   int
+   getter: surface-pitch)
+  ("pixels"
+   type:   c-pointer
+   getter: surface-pixels-raw)
+  ("userdata"
+   type:   c-pointer
+   getter: surface-userdata-raw
+   setter: surface-userdata-raw-set!
+   guard:  noop-guard)
+  ;; omitted: locked     (internal use)
+  ;; omitted: lock_data  (internal use)
+  ;; omitted: clip_rect  (use SDL_GetClipRect / SDL_SetClipRect)
+  ;; omitted: map        (internal use)
+  ("refcount"
+   type:   int
+   getter: surface-refcount
+   setter: surface-refcount-set!
+   guard:  (int-guard "sdl2:surface field refcount")))

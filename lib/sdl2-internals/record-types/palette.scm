@@ -30,29 +30,38 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export palette?
+        wrap-palette
+        unwrap-palette
+        %palette-pointer
+        %palette-pointer-set!
+        free-palette!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-struct-record-type
+  sdl2:palette "SDL_Palette"
+  pred:    palette?
+  wrap:    wrap-palette
+  unwrap:  unwrap-palette
+  (pointer %palette-pointer
+           %palette-pointer-set!))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define (free-palette! palette)
+  (define foreign-freer
+    ;; Cannot use SDL_Palette* foreign type because it has not been
+    ;; defined yet.
+    (foreign-lambda void "SDL_FreePalette"
+                    (c-pointer "SDL_Palette")))
+  (assert (palette? palette))
+  (unless (struct-null? palette)
+    (foreign-freer (%palette-pointer palette))
+    (%nullify-struct! palette))
+  palette)
 
-)
+
+(define-struct-record-printer sdl2:palette
+  %palette-pointer
+  show-address: #t
+  (ncolors palette-ncolors))
+

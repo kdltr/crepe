@@ -30,29 +30,23 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export %allocate-event-array
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+        %read-event-array
+        %write-event-array
 
-(include "lib/shared/error-helpers.scm")
+        %event-array->list
+        %event-list->array)
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-allocator %allocate-event-array "SDL_Event")
 
-)
+(define-array-reader %read-event-array
+  "SDL_Event*" SDL_Event*)
+(define-array-writer %write-event-array
+  "SDL_Event*" SDL_Event*)
+
+(define-array->list %event-array->list
+  %read-event-array (alloc-event))
+(define-list->array %event-list->array
+  %allocate-event-array %write-event-array)

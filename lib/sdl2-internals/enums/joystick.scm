@@ -30,29 +30,20 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export joystick-hat-position->symbol
+        symbol->joystick-hat-position)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+(define-enum-mappings
+  type: SDL_JoystickHatPosition
+  value->symbol: joystick-hat-position->symbol
+  symbol->value: symbol->joystick-hat-position
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+  ((SDL_HAT_CENTERED   centered)
+   (SDL_HAT_UP         up)
+   (SDL_HAT_RIGHT      right)
+   (SDL_HAT_DOWN       down)
+   (SDL_HAT_LEFT       left)
+   (SDL_HAT_RIGHTUP    right-up)
+   (SDL_HAT_RIGHTDOWN  right-down)
+   (SDL_HAT_LEFTUP     left-up)
+   (SDL_HAT_LEFTDOWN   left-down)))

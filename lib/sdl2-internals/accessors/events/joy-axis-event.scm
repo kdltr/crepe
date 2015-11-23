@@ -30,29 +30,33 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export joy-axis-event?
+        joy-axis-event-which
+        joy-axis-event-which-set!
+        joy-axis-event-axis
+        joy-axis-event-axis-set!
+        joy-axis-event-value
+        joy-axis-event-value-set!)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
-
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
-
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
-
-)
+(define-event-type "SDL_JoyAxisEvent"
+  types: (SDL_JOYAXISMOTION)
+  pred:  joy-axis-event?
+  print: ((which joy-axis-event-which)
+          (axis joy-axis-event-axis)
+          (value joy-axis-event-value))
+  ("jaxis.which"
+   type:   SDL_JoystickID
+   getter: joy-axis-event-which
+   setter: joy-axis-event-which-set!
+   guard:  noop-guard)
+  ("jaxis.axis"
+   type:   Uint8
+   getter: joy-axis-event-axis
+   setter: joy-axis-event-axis-set!
+   guard:  (Uint8-guard "sdl2:joy-axis-event field axis"))
+  ("jaxis.value"
+   type:   Sint16
+   getter: joy-axis-event-value
+   setter: joy-axis-event-value-set!
+   guard:  (Sint16-guard "sdl2:joy-axis-event field value")))

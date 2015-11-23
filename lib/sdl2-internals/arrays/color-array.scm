@@ -30,29 +30,23 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export %allocate-color-array
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
+        %read-color-array
+        %write-color-array
 
-(include "lib/shared/error-helpers.scm")
+        %color-array->vector
+        %color-vector->array)
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-allocator %allocate-color-array "SDL_Color")
 
-)
+(define-array-reader %read-color-array
+  "SDL_Color*" SDL_Color*)
+(define-array-writer %write-color-array
+  "SDL_Color*" SDL_Color*)
+
+(define-array->vector %color-array->vector
+  %read-color-array (alloc-color))
+(define-vector->array %color-vector->array
+  %allocate-color-array %write-color-array)

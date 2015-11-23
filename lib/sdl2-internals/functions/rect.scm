@@ -30,29 +30,52 @@
 ;; OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(module sdl2 ()
+(export SDL_RectEmpty
+        SDL_RectEquals
+        SDL_EnclosePoints
+        SDL_IntersectRectAndLine
+        SDL_HasIntersection
+        SDL_IntersectRect
+        SDL_UnionRect)
 
-(import scheme chicken sdl2-internals)
-(use extras lolevel srfi-1 srfi-18)
 
-(include "lib/shared/error-helpers.scm")
+(define-function-binding SDL_RectEmpty
+  return: (bool rect-empty?)
+  args: ((SDL_Rect* r)))
 
-(include "lib/sdl2/helpers/with-temp-mem.scm")
-(include "lib/sdl2/helpers/define-versioned.scm")
+(define-function-binding SDL_RectEquals
+  return: (bool rect-equals?)
+  args: ((SDL_Rect* a)
+         (SDL_Rect* b)))
 
-(include "lib/sdl2/reexports.scm")
-(include "lib/sdl2/general.scm")
-(include "lib/sdl2/events.scm")
-(include "lib/sdl2/gl.scm")
-(include "lib/sdl2/joystick.scm")
-(include "lib/sdl2/keyboard.scm")
-(include "lib/sdl2/palette.scm")
-(include "lib/sdl2/pixel-format.scm")
-(include "lib/sdl2/rect.scm")
-(include "lib/sdl2/rwops.scm")
-(include "lib/sdl2/surface.scm")
-(include "lib/sdl2/timer.scm")
-(include "lib/sdl2/touch.scm")
-(include "lib/sdl2/window.scm")
+(define-function-binding SDL_EnclosePoints
+  return: (bool success?)
+  args: ((SDL_Point* points)
+         (int count)
+         (SDL_Rect*-or-null clip-or-null)
+         (SDL_Rect* result-out)))
 
-)
+(define-function-binding SDL_HasIntersection
+  return: (bool intersects?)
+  args: ((SDL_Rect* a)
+         (SDL_Rect* b)))
+
+(define-function-binding SDL_IntersectRect
+  return: (bool intersects?)
+  args: ((SDL_Rect* a)
+         (SDL_Rect* b)
+         (SDL_Rect* result-out)))
+
+(define-function-binding SDL_IntersectRectAndLine
+  return: (bool intersects?)
+  args: ((SDL_Rect* rect)
+         (int* x1-in-out)
+         (int* y1-in-out)
+         (int* x2-in-out)
+         (int* y2-in-out)))
+
+(define-function-binding SDL_UnionRect
+  args: ((SDL_Rect* a)
+         (SDL_Rect* b)
+         (SDL_Rect* result-out)))
+
