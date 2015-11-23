@@ -9,13 +9,13 @@
 
 (define play-button
   (make-rect buttons-x
-             (+ board-y 50)
+             (+ board-y 125)
              (sprite-w button-on-surface)
              (sprite-h button-on-surface)))
 
 (define quit-button
   (make-rect buttons-x
-             (+ (sprite-h button-off-surface) (rect-y play-button) 50)
+             (+ (sprite-h button-off-surface) (rect-y play-button) 85)
              (sprite-w button-on-surface)
              (sprite-h button-on-surface)))
 
@@ -25,37 +25,27 @@
        (< x (+ (rect-x rect) (rect-w rect)))
        (< y (+ (rect-y rect) (rect-h rect)))))
 
+(define (draw-button! x y rect text)
+  (show-sprite! (if (inside-rect? rect x y) button-on-surface button-off-surface)
+                (rect-x rect) (rect-y rect))
+  (show-sprite! pins-surface
+                (- (rect-x rect)
+                   (- (quotient (sprite-w pins-surface) 2)
+                      (quotient (sprite-w button-on-surface) 2)))
+                (- (rect-y rect) (quotient (sprite-h pins-surface) 2)))
+  (show-sprite! text
+                (+ (rect-x rect)
+                   (- (quotient (sprite-w button-on-surface) 2)
+                      (quotient (sprite-w text) 2)))
+                (+ (rect-y rect)
+                   (- (quotient (sprite-h button-on-surface) 2)
+                      (quotient (sprite-h text) 2)))))
+
 (define (draw-menu-graphics x y)
   (show-sprite! background-surface 0 0)
   (show-sprite! board-surface board-x board-y)
-
-  (if (inside-rect? play-button x y)
-   (show-sprite! button-on-surface (rect-x play-button) (rect-y play-button))
-   (show-sprite! button-off-surface (rect-x play-button) (rect-y play-button)))
-  (show-sprite! pins-surface
-                (- (rect-x play-button) 10)
-                (- (rect-y play-button) (quotient (sprite-h pins-surface) 2)))
-  (show-sprite! play-text-surface
-                (+ (rect-x play-button)
-                   (- (quotient (sprite-w button-off-surface) 2)
-                      (quotient (sprite-w play-text-surface) 2)))
-                (+ (rect-y play-button)
-                   (- (quotient (sprite-h button-off-surface) 2)
-                      (quotient (sprite-h play-text-surface) 2))))
-
-  (if (inside-rect? quit-button x y)
-   (show-sprite! button-on-surface (rect-x quit-button) (rect-y quit-button))
-   (show-sprite! button-off-surface (rect-x quit-button) (rect-y quit-button)))
-  (show-sprite! pins-flipped-surface
-                (- (rect-x quit-button) 10)
-                (- (rect-y quit-button) (quotient (sprite-h pins-surface) 2)))
-  (show-sprite! quit-text-surface
-                (+ (rect-x quit-button)
-                   (- (quotient (sprite-w button-off-surface) 2)
-                      (quotient (sprite-w quit-text-surface) 2)))
-                (+ (rect-y quit-button)
-                   (- (quotient (sprite-h button-off-surface) 2)
-                      (quotient (sprite-h quit-text-surface) 2)))))
+  (draw-button! x y play-button play-text-surface)
+  (draw-button! x y quit-button quit-text-surface))
 
 (define (main-loop-menu x y)
   (draw-menu-graphics x y)
