@@ -107,7 +107,7 @@
                      (new-state (crepe-state nc)))
                  (if (and (descend-state? old-state)
                           (ascend-state? new-state))
-                     (- 2500 (descend-state-speed old-state))
+                     100000
                      0)))
              old-board
              new-board)))
