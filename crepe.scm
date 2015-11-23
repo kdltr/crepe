@@ -43,8 +43,13 @@
     ((key-down)
      (keyboard-event-scancode ev))
     ((mouse-button-down)
-     (list (mouse-button-event-x ev)
+     (list 'button-down
+           (mouse-button-event-x ev)
            (mouse-button-event-y ev)))
+    ((mouse-motion)
+     (list 'motion
+           (mouse-motion-event-x ev)
+           (mouse-motion-event-y ev)))
     (else
      #f)))
 

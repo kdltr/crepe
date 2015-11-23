@@ -57,9 +57,10 @@
   (draw-menu-graphics)
   (SDL_RenderPresent renderer)
   (let* ((event (find list? (collect-events!)))
-         (x (and event (car event)))
-         (y (and event (cadr event))))
-    (when event
+         (type (and event (first event)))
+         (x (and event (second event)))
+         (y (and event (third event))))
+    (when (eq? type 'button-down)
       (cond ((inside-rect? play-button x y)
              (start-game))
             ((inside-rect? quit-button x y)
