@@ -7,6 +7,9 @@
                      (- (quotient (sprite-w board-surface) 2)
                         (quotient (sprite-w button-off-surface) 2))))
 
+(define board
+  (make-rect board-x board-y (sprite-w board-surface) (sprite-h board-surface)))
+
 (define play-button
   (make-rect buttons-x
              (+ board-y 125)
@@ -18,6 +21,18 @@
              (+ (sprite-h button-off-surface) (rect-y play-button) 85)
              (sprite-w button-on-surface)
              (sprite-h button-on-surface)))
+
+(define credits-button
+  (make-rect (+ board-x
+                (sprite-w board-surface)
+                (- (sprite-w button-credits-surface))
+                (- 47))
+             (+ board-y
+                (sprite-h board-surface)
+                (- (sprite-h button-credits-surface))
+                (- 40))
+             (sprite-w button-credits-surface)
+             (sprite-h button-credits-surface)))
 
 (define (inside-rect? rect x y)
   (and (>= x (rect-x rect))
@@ -47,17 +62,11 @@
   (draw-button! x y play-button play-text-surface)
   (draw-button! x y quit-button quit-text-surface)
   (show-sprite! button-credits-surface
-                (+ board-x
-                   (sprite-w board-surface)
-                   (- (sprite-w button-credits-surface))
-                   (- 47))
-                (+ board-y
-                   (sprite-h board-surface)
-                   (- (sprite-h button-credits-surface))
-                   (- 40)))
+                (rect-x credits-button)
+                (rect-y credits-button))
   (SDL_RenderPresent renderer))
 
-(define (main-loop-menu x y)
+(define (menu-main-loop x y)
   (draw-menu-graphics x y)
   (let* ((event (find list? (collect-events!)))
          (type (and event (first event)))
@@ -67,5 +76,24 @@
       (cond ((inside-rect? play-button x y)
              (start-game))
             ((inside-rect? quit-button x y)
-             (exit 0))))
-    (if (eq? type 'motion) (main-loop-menu new-x new-y) (main-loop-menu x y))))
+             (exit 0))
+            ((inside-rect? credits-button x y)
+             (credits-main-loop))))
+    (if (eq? type 'motion)
+        (menu-main-loop new-x new-y)
+        (menu-main-loop x y))))
+
+
+(define (draw-credits!)
+  (show-sprite! credits-surface board-x board-y)
+  (SDL_RenderPresent renderer))
+
+(define (credits-main-loop)
+  (draw-credits!)
+  (let* ((event (find list? (collect-events!)))
+         (type (and event (first event)))
+         (x (and event (second event)))
+         (y (and event (third event))))
+    (unless (and (eq? type 'button-down)
+                 (inside-rect? board x y))
+      (credits-main-loop))))
