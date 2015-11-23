@@ -6,11 +6,12 @@
 
 
 (define (draw-player player)
-  (let ((w (sprite-w character-surface))
-        (h (sprite-h character-surface)))
-    (show-sprite! character-surface
-                  (* player +column-space+)
-                  (- +height+ h))))
+  (let* ((w (sprite-w body-low-surface))
+         (h (sprite-h body-low-surface))
+         (x (* player +column-space+))
+         (y (- +height+ h)))
+    (show-sprite! body-low-surface x y)
+    (show-sprite! head-focus-surface x y)))
 
 (define (crepe-surface state wiggle)
   (match state

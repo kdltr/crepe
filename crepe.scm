@@ -22,7 +22,7 @@
                             'undefined 'undefined
                             (display-mode-w dm)
                             (* (quotient (display-mode-w dm) 16) 9)
-                            '(fullscreen-desktop)))
+                            '()))
 
 (define renderer
   (SDL_CreateRenderer win -1 6))
@@ -92,7 +92,12 @@
 (define score-text-surface (load-img (file-blob "graph/score-text.png")))
 (define lives-text-surface (load-img (file-blob "graph/lives-text.png")))
 (define heart-surface (load-img (file-blob "graph/coeur.png")))
-(define character-surface (load-img (file-blob "graph/character.png")))
+
+(define body-low-surface (load-img (file-blob "graph/body-low.png")))
+(define body-high-surface (load-img (file-blob "graph/body-high.png")))
+(define head-focus-surface (load-img (file-blob "graph/head-focus.png")))
+(define head-happy-surface (load-img (file-blob "graph/head-happy.png")))
+(define head-sad-surface (load-img (file-blob "graph/head-sad.png")))
 
 (define board-surface (load-img (file-blob "graph/board.png")))
 (define pins-surface (load-img (file-blob "graph/pins.png")))
