@@ -1,10 +1,14 @@
 (export SDL_CreateRenderer
         SDL_DestroyRenderer
+        SDL_GetRenderTarget
         SDL_RenderClear
         SDL_RenderCopy
+        SDL_RenderFillRect
         SDL_RenderPresent
+        SDL_RenderTargetSupported
+        SDL_RenderSetLogicalSize
         SDL_SetRenderDrawColor
-        SDL_RenderFillRect)
+        SDL_SetRenderTarget)
 
 (define-function-binding SDL_CreateRenderer
   return: (SDL_Renderer* renderer)
@@ -22,7 +26,11 @@
 ;; SDL_GetRenderDrawBlendMode
 ;; SDL_GetRenderDrawColor
 ;; SDL_GetRenderDriverInfo
-;; SDL_GetRenderTarget
+
+(define-function-binding SDL_GetRenderTarget
+  return: (SDL_Texture* texture)
+  args: ((SDL_Renderer* renderer)))
+
 ;; SDL_GetRenderer
 ;; SDL_GetRendererInfo
 ;; SDL_GetRendererOutputSize
@@ -53,7 +61,9 @@
 
 ;; SDL_RenderFillRects
 ;; SDL_RenderGetClipRect
+
 ;; SDL_RenderGetLogicalSize
+
 ;; SDL_RenderGetScale
 ;; SDL_RenderGetViewport
 ;; SDL_RenderIsClipEnabled
@@ -63,10 +73,20 @@
 
 ;; SDL_RenderReadPixels
 ;; SDL_RenderSetClipRect
-;; SDL_RenderSetLogicalSize
+
+(define-function-binding SDL_RenderSetLogicalSize
+  return: (int error)
+  args: ((SDL_Renderer* renderer)
+         (int w)
+         (int h)))
+
 ;; SDL_RenderSetScale
 ;; SDL_RenderSetViewport
-;; SDL_RenderTargetSupported
+
+(define-function-binding SDL_RenderTargetSupported
+  return: (bool target-supported)
+  args: ((SDL_Renderer* renderer)))
+
 ;; SDL_SetRenderDrawBlendMode
 
 (define-function-binding SDL_SetRenderDrawColor
@@ -77,7 +97,11 @@
          (Uint8 b)
          (Uint8 a)))
 
-;; SDL_SetRenderTarget
+(define-function-binding SDL_SetRenderTarget
+  return: (int error)
+  args: ((SDL_Renderer* renderer)
+         (SDL_Texture*-or-null texture)))
+
 ;; SDL_SetTextureAlphaMod
 ;; SDL_SetTextureBlendMode
 ;; SDL_SetTextureColorMod

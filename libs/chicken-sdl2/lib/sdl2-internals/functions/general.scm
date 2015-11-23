@@ -51,6 +51,9 @@
         SDL_GetClipboardText
         SDL_SetClipboardText
 
+        SDL_GetHint
+        SDL_SetHint
+
         %current-version
         %compiled-version
         SDL_VERSION_ATLEAST)
@@ -125,6 +128,19 @@
 (define-function-binding SDL_SetClipboardText
   return: (int zero-if-success)
   args: (((const c-string) text)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; CLIPBOARD TEXT
+
+(define-function-binding SDL_GetHint
+  return: (c-string value)
+  args: ((c-string name)))
+
+(define-function-binding SDL_SetHint
+  return: (bool done)
+  args: ((c-string name)
+         (c-string value)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
