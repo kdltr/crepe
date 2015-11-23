@@ -42,9 +42,10 @@
                       (quotient (sprite-h play-text-surface) 2))))
 
   (show-sprite! button-off-surface (rect-x quit-button) (rect-y quit-button))
-  (show-sprite! pins-flipped-surface
+  (show-sprite! pins-surface
                 (- (rect-x quit-button) 10)
-                (- (rect-y quit-button) (quotient (sprite-h pins-surface) 2)))
+                (- (rect-y quit-button) (quotient (sprite-h pins-surface) 2))
+                flipped: #t)
   (show-sprite! quit-text-surface
                 (+ (rect-x quit-button)
                    (- (quotient (sprite-w button-off-surface) 2)

@@ -62,15 +62,18 @@
 
 (define show-sprite!
   (let ((rect (make-rect)))
-    (lambda (sprite x y)
+    (lambda (sprite x y #!key (flipped #f))
       (set! (rect-x rect) x)
       (set! (rect-y rect) y)
       (set! (rect-w rect) (sprite-w sprite))
       (set! (rect-h rect) (sprite-h sprite))
-      (SDL_RenderCopy renderer
-                      (sprite-texture sprite)
-                      #f
-                      rect))))
+      (SDL_RenderCopyEx renderer
+                        (sprite-texture sprite)
+                        #f
+                        rect
+                        0
+                        #f
+                        (if flipped 1 0)))))
 
 (define-syntax file-blob
   (ir-macro-transformer
@@ -101,7 +104,6 @@
 
 (define board-surface (load-img (file-blob "graph/board.png")))
 (define pins-surface (load-img (file-blob "graph/pins.png")))
-(define pins-flipped-surface (load-img (file-blob "graph/pins-flipped.png")))
 (define button-on-surface (load-img (file-blob "graph/button-on.png")))
 (define button-off-surface (load-img (file-blob "graph/button-off.png")))
 (define play-text-surface (load-img (file-blob "graph/play-text.png")))
