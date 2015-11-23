@@ -3,6 +3,7 @@
         SDL_GetRenderTarget
         SDL_RenderClear
         SDL_RenderCopy
+        SDL_RenderCopyEx
         SDL_RenderFillRect
         SDL_RenderPresent
         SDL_RenderTargetSupported
@@ -45,6 +46,16 @@
          (SDL_Texture* texture)
          (SDL_Rect*-or-null srcrect)
          (SDL_Rect*-or-null dstrect)))
+
+(define-function-binding SDL_RenderCopyEx
+  return: (int error)
+  args: ((SDL_Renderer* renderer)
+         (SDL_Texture* texture)
+         (SDL_Rect*-or-null srcrect)
+         (SDL_Rect*-or-null dstrect)
+         (double angle)
+         (SDL_Point*-or-null center)
+         (SDL_RendererFlip flip)))
 
 ;; SDL_RenderCopyEx
 ;; SDL_RenderDrawLine
