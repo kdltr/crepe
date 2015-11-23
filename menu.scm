@@ -45,11 +45,20 @@
   (show-sprite! background-surface 0 0)
   (show-sprite! board-surface board-x board-y)
   (draw-button! x y play-button play-text-surface)
-  (draw-button! x y quit-button quit-text-surface))
+  (draw-button! x y quit-button quit-text-surface)
+  (show-sprite! button-credits-surface
+                (+ board-x
+                   (sprite-w board-surface)
+                   (- (sprite-w button-credits-surface))
+                   (- 47))
+                (+ board-y
+                   (sprite-h board-surface)
+                   (- (sprite-h button-credits-surface))
+                   (- 40)))
+  (SDL_RenderPresent renderer))
 
 (define (main-loop-menu x y)
   (draw-menu-graphics x y)
-  (SDL_RenderPresent renderer)
   (let* ((event (find list? (collect-events!)))
          (type (and event (first event)))
          (new-x (and event (second event)))

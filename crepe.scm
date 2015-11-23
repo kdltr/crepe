@@ -106,6 +106,8 @@
 (define button-off-surface (load-img (file-blob "graph/button-off.png")))
 (define play-text-surface (load-img (file-blob "graph/play-text.png")))
 (define quit-text-surface (load-img (file-blob "graph/quit-text.png")))
+(define button-credits-surface (load-img (file-blob "graph/button-credits.png")))
+(define credits-surface (load-img (file-blob "graph/credits.png")))
 
 (include "game")
 (include "menu")
