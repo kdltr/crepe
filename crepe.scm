@@ -7,18 +7,26 @@
   matchable
 )
 
-(define +width+ 1280)
-(define +height+ 720)
-
+(SDL_SetHint "SDL_RENDER_SCALE_QUALITY" "1")
+(set-main-ready!)
 (init!)
 (assert (member 'png (img:init! '(png))))
 
+(define dm (make-display-mode))
+(SDL_GetDesktopDisplayMode 0 dm)
+
+(define +width+ 1920)
+(define +height+ 1080)
+
 (define win (create-window! "Crepes-party-hard-yolo-swag 2015"
                             'undefined 'undefined
-                            +width+ +height+))
+                            (display-mode-w dm)
+                            (* (quotient (display-mode-w dm) 16) 9)
+                            '(fullscreen-desktop)))
 
 (define renderer
   (SDL_CreateRenderer win -1 6))
+(SDL_RenderSetLogicalSize renderer +width+ +height+)
 
 (define collect-events!
   (let ((e (make-event)))

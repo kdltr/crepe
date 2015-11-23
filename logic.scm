@@ -13,8 +13,8 @@
 (define +columns-number+ 5)
 (define +lines-number+ 10)
 
-(define +highest-point+ 88)
-(define +lowest-point+ 720)
+(define +highest-point+ 135)
+(define +lowest-point+ 1080)
 
 (define +initial-player-position+ 2)
 (define +initial-lives+ 3)
