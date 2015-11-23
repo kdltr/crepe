@@ -224,6 +224,11 @@
   unwrap-texture
   wrap-texture)
 
+(define-foreign-type SDL_Texture*-or-null
+  (c-pointer "SDL_Texture")
+  unwrap-texture
+  wrap-texture)
+
 
 (define-foreign-type SDL_Window*
   (nonnull-c-pointer "SDL_Window")
