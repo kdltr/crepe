@@ -42,7 +42,7 @@
 (define (crepe-y state clock)
   (+ +highest-point+
      (* (height clock state)
-        (- +lowest-point+ +highest-point+))))
+	(if (ascend-state? state) (- (- +lowest-point+ 300) +highest-point+) (- +lowest-point+ +highest-point+)))))
 
 (define char-width (quotient (sprite-w font-surface) 10))
 

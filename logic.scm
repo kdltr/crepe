@@ -25,7 +25,7 @@
                               (make-crepe column: 3 state: (make-stick-state #f))
                               (make-crepe column: 4 state: (make-stick-state #f))))
 
-(define +ascend-speed+ 1000)
+(define +ascend-speed+ 400)
 (define +maximum-stick-time+ 500)
 
 (define +initial-max-speed+ 1700)
