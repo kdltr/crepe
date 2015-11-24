@@ -6,6 +6,8 @@
 
 (defstruct crepe column line state speed last-time)
 
+(defstruct player pos body head)
+
 (defstruct ascend-state time)
 (defstruct descend-state speed time)
 (defstruct stick-state unstick time)
@@ -16,7 +18,7 @@
 (define +highest-point+ 135)
 (define +lowest-point+ 1080)
 
-(define +initial-player-position+ 2)
+(define +initial-player+ (make-player pos: 2 body: -1000 head: -1000))
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
 (define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state #f))
@@ -34,12 +36,19 @@
 
 ;; game logic
 
-(define (move-player player direction)
+(define (move-player player-pos direction)
   (let* ((increment (case direction ((left) -1) ((right) +1) ((stay) 0)))
-         (np (+ player increment)))
+         (np (+ player-pos increment)))
     (if (or (< np 0) (>= np +columns-number+))
-        player
+        player-pos
         np)))
+
+(define (compute-new-player p pos score-increment lives-lost clock)
+  (let* ((crepe-sent (> score-increment 0))
+         (sad (> lives-lost 0))
+         (body (if crepe-sent clock (player-body p)))
+         (head (if sad clock (player-head p))))
+    (make-player pos: pos head: head body: body)))
 
 (define (height clock state)
   (match state

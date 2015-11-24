@@ -5,13 +5,19 @@
 (define +line-space+ (quotient +height+ +lines-number+))
 
 
-(define (draw-player player)
+(define (draw-player player clock)
   (let* ((w (sprite-w body-low-surface))
          (h (sprite-h body-low-surface))
-         (x (* player +column-space+))
-         (y (- +height+ h)))
-    (show-sprite! body-low-surface x y)
-    (show-sprite! head-focus-surface x y)))
+         (x (* (player-pos player) +column-space+))
+         (y (- +height+ h))
+         (body (if (<= clock (+ 300 (player-body player)))
+                   body-high-surface
+                   body-low-surface))
+         (head (if (<= clock (+ 1000 (player-head player)))
+                   head-sad-surface
+                   head-focus-surface)))
+    (show-sprite! body x y)
+    (show-sprite! head x y)))
 
 (define (crepe-surface state wiggle)
   (match state
@@ -85,14 +91,14 @@
 
 (define (draw-game player lives score board clock)
   (show-sprite! background-surface 0 0)
-  (draw-player player)
+  (draw-player player clock)
   (for-each (draw-crepe clock) board)
   (draw-score score)
   (draw-lives lives)
   (SDL_RenderPresent renderer))
 
 (define (start-game)
-  (main-loop +initial-player-position+
+  (main-loop +initial-player+
 	     +initial-lives+
 	     +initial-score+
 	     +initial-board+))
@@ -110,10 +116,11 @@
 
 (define (main-loop player lives score board)
   (let* ((clock (get-ticks))
-         (new-player (move-player player (get-direction (find symbol? (collect-events!)))))
-         (new-board (map (compute-crepe clock new-player score (final-times board)) board))
+         (new-player-pos (move-player (player-pos player) (get-direction (find symbol? (collect-events!)))))
+         (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
          (score-increment (compute-score board new-board))
-         (lives-lost (count (lambda (c) (outside-board? clock c)) new-board)))
+         (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
+         (new-player (compute-new-player player new-player-pos score-increment lives-lost clock)))
     (draw-game player lives score board clock)
     (if (dead? lives)
 	score
