@@ -112,4 +112,4 @@
 (include "game")
 (include "menu")
 
-(menu-main-loop 0 0)
+(menu-main-loop 0 0 0)
