@@ -88,6 +88,7 @@
 
 
 (define (draw-credits!)
+  (show-sprite! background-surface 0 0)
   (show-sprite! credits-surface board-x board-y)
   (SDL_RenderPresent renderer))
 

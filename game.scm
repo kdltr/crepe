@@ -126,7 +126,7 @@
     (update-crepe
      crepe
      state: (cond
-	     ((and (stick-state? state) (not (stick-state-unstick state)) (should-fall?))
+             ((and (stick-state? state) (not (stick-state-unstick state)) (should-fall?))
               (update-stick-state state unstick: #t time: clock))
              ((and (stick-state? state) (stick-state-unstick state) (>= clock (+ (stick-state-time state) 1000)))
               (make-descend-state time: clock speed: (random-speed times clock score)))
