@@ -34,6 +34,8 @@
 (define +initial-min-speed+ 2000)
 (define +maximum-speed+ 300)
 
+(define +score-increment+ 100)
+
 ;; game logic
 
 (define (move-player player-pos direction)
@@ -128,7 +130,7 @@
                      (new-state (crepe-state nc)))
                  (if (and (descend-state? old-state)
                           (ascend-state? new-state))
-                     100000
+                     +score-increment+
                      0)))
              old-board
              new-board)))
