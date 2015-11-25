@@ -10,11 +10,13 @@
          (h (sprite-h body-low-surface))
          (x (* (player-pos player) +column-space+))
          (y (- +height+ h))
-         (body (if (<= clock (+ 300 (player-body player)))
+         (body (if (<= clock (+ 250 (player-body-time player)))
                    body-high-surface
                    body-low-surface))
-         (head (if (<= clock (+ 1000 (player-head player)))
-                   head-sad-surface
+         (head (if (<= clock (+ 1000 (player-head-time player)))
+                   (case (player-head-type player)
+                     ((sad) head-sad-surface)
+                     ((happy) head-happy-surface))
                    head-focus-surface)))
     (show-sprite! body x y)
     (show-sprite! head x y)))
@@ -120,7 +122,12 @@
          (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
          (score-increment (compute-score board new-board))
          (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
-         (new-player (compute-new-player player new-player-pos score-increment lives-lost clock)))
+         (new-player (compute-new-player player
+                                         new-player-pos
+                                         (> score-increment 0)
+                                         (any (cut almost-failed? clock <> <>) board new-board)
+                                         (any (cut outside-reach? clock <>) new-board)
+                                         clock)))
     (draw-game player lives score board clock)
     (if (dead? lives)
 	score
