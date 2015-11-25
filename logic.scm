@@ -6,7 +6,7 @@
 
 (defstruct crepe column line state speed last-time)
 
-(defstruct player pos body-time head-type head-time)
+(defstruct player pos direction body-time head-type head-time)
 
 (defstruct ascend-state time)
 (defstruct descend-state speed time)
@@ -18,7 +18,7 @@
 (define +highest-point+ 135)
 (define +lowest-point+ 1080)
 
-(define +initial-player+ (make-player pos: 2 body-time: -1000 head-type: 'focus head-time: -1000))
+(define +initial-player+ (make-player pos: 2 direction: 'right body-time: -1000 head-type: 'focus head-time: -1000))
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
 (define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state #f))
@@ -45,11 +45,13 @@
         player-pos
         np)))
 
-(define (compute-new-player p pos throw happy sad clock)
+(define (compute-new-player p pos direction throw happy sad clock)
   (let* ((body-time (if throw clock (player-body-time p)))
          (head (or (and happy 'happy) (and sad 'sad) (player-head-type p)))
-         (head-time (if (or happy sad) clock (player-head-time p))))
+         (head-time (if (or happy sad) clock (player-head-time p)))
+         (new-direction (if (eq? direction 'stay) (player-direction p) direction)))
     (make-player pos: pos
+                 direction: new-direction
                  body-time: body-time
                  head-type: head
                  head-time: head-time)))

@@ -6,20 +6,20 @@
 
 
 (define (draw-player player clock)
-  (let* ((w (sprite-w body-low-surface))
-         (h (sprite-h body-low-surface))
-         (x (* (player-pos player) +column-space+))
-         (y (- +height+ h))
-         (body (if (<= clock (+ 250 (player-body-time player)))
+  (let* ((body (if (<= clock (+ 250 (player-body-time player)))
                    body-high-surface
                    body-low-surface))
          (head (if (<= clock (+ 1000 (player-head-time player)))
                    (case (player-head-type player)
                      ((sad) head-sad-surface)
                      ((happy) head-happy-surface))
-                   head-focus-surface)))
-    (show-sprite! body x y)
-    (show-sprite! head x y)))
+                   head-focus-surface))
+         (flip (eq? (player-direction player) 'left))
+         (x (+ ((if flip + -) (quotient (sprite-h body-low-surface) 4))
+               (* (player-pos player) +column-space+)))
+         (y (- +height+ (sprite-h body-low-surface))))
+    (show-sprite! body x y flipped: flip)
+    (show-sprite! head x y flipped: flip)))
 
 (define (crepe-surface state wiggle)
   (match state
@@ -118,17 +118,19 @@
 
 (define (main-loop player lives score board)
   (let* ((clock (get-ticks))
-         (new-player-pos (move-player (player-pos player) (get-direction (find symbol? (collect-events!)))))
+         (direction (get-direction (find symbol? (collect-events!))))
+         (new-player-pos (move-player (player-pos player) direction))
          (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
          (score-increment (compute-score board new-board))
          (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
          (new-player (compute-new-player player
                                          new-player-pos
+                                         direction
                                          (> score-increment 0)
                                          (any (cut almost-failed? clock <> <>) board new-board)
                                          (any (cut outside-reach? clock <>) new-board)
                                          clock)))
-    (draw-game player lives score board clock)
+    (draw-game new-player (- lives lives-lost) (+ score score-increment) (revive-crepes clock board) clock)
     (if (dead? lives)
 	score
 	(main-loop new-player

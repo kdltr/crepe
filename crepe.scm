@@ -4,8 +4,7 @@
   sdl2-internals
   (prefix sdl2-image img:)
   defstruct
-  matchable
-)
+  matchable)
 
 (SDL_SetHint "SDL_RENDER_SCALE_QUALITY" "1")
 (set-main-ready!)
