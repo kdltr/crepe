@@ -6,6 +6,8 @@
 
 (defstruct crepe column line state speed last-time)
 
+(defstruct player pos body-time head-type head-time)
+
 (defstruct ascend-state time)
 (defstruct descend-state speed time)
 (defstruct stick-state unstick time)
@@ -16,7 +18,7 @@
 (define +highest-point+ 135)
 (define +lowest-point+ 1080)
 
-(define +initial-player-position+ 2)
+(define +initial-player+ (make-player pos: 2 body-time: -1000 head-type: 'focus head-time: -1000))
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
 (define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state #f))
@@ -34,12 +36,21 @@
 
 ;; game logic
 
-(define (move-player player direction)
+(define (move-player player-pos direction)
   (let* ((increment (case direction ((left) -1) ((right) +1) ((stay) 0)))
-         (np (+ player increment)))
+         (np (+ player-pos increment)))
     (if (or (< np 0) (>= np +columns-number+))
-        player
+        player-pos
         np)))
+
+(define (compute-new-player p pos throw happy sad clock)
+  (let* ((body-time (if throw clock (player-body-time p)))
+         (head (or (and happy 'happy) (and sad 'sad) (player-head-type p)))
+         (head-time (if (or happy sad) clock (player-head-time p))))
+    (make-player pos: pos
+                 body-time: body-time
+                 head-type: head
+                 head-time: head-time)))
 
 (define (height clock state)
   (match state
@@ -59,11 +70,14 @@
 (define (final-times board)
   (map (o final-time crepe-state) board))
 
-(define (outside-board? clock crepe)
+(define (outside-reach? clock crepe)
   (let ((state (crepe-state crepe)))
     (and (descend-state? state)
          (>= clock
-             (+ 500 (final-time state))))))
+             (final-time state)))))
+
+(define (outside-board? clock crepe)
+  (outside-reach? (- clock 500) crepe))
 
 (define (dead? lives)
   (zero? lives))
@@ -88,6 +102,13 @@
 (define (within-catch-range? clock time speed)
   (let ((height (/ (- clock time) speed)))
     (> 0.9 height 0.7)))
+
+(define (almost-failed? clock old-crepe new-crepe)
+  (let ((old-state (crepe-state old-crepe))
+        (new-state (crepe-state new-crepe)))
+    (and (descend-state? old-state)
+         (ascend-state? new-state)
+         (>= (height clock old-state) 0.85))))
 
 (define (should-fall?)
   (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+)))

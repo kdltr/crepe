@@ -77,7 +77,7 @@
 		     (inside-rect? play-button new-x new-y)
 		     (start-game))))
     (when (eq? type 'button-down)
-      (cond 
+      (cond
        ((inside-rect? quit-button x y)
 	(exit 0))
        ((inside-rect? credits-button x y)
@@ -85,7 +85,6 @@
     (if (eq? type 'motion)
         (menu-main-loop new-x new-y (or new-score score))
         (menu-main-loop x y (or new-score score)))))
-
 
 (define (draw-credits!)
   (show-sprite! background-surface 0 0)
