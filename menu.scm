@@ -74,8 +74,8 @@
          (new-x (and event (second event)))
          (new-y (and event (third event)))
 	 (new-score (and (eq? type 'button-down)
-		     (inside-rect? play-button new-x new-y)
-		     (start-game))))
+                         (inside-rect? play-button new-x new-y)
+                         (start-game))))
     (when (eq? type 'button-down)
       (cond
        ((inside-rect? quit-button x y)

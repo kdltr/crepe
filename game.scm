@@ -117,26 +117,26 @@
       'stay))
 
 (define (main-loop player lives score board)
-  (let* ((clock (get-ticks))
-         (direction (get-direction (find symbol? (collect-events!))))
-         (new-player-pos (move-player (player-pos player) direction))
-         (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
-         (score-increment (compute-score board new-board))
-         (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
-         (new-player (compute-new-player player
-                                         new-player-pos
-                                         direction
-                                         (> score-increment 0)
-                                         (any (cut almost-failed? clock <> <>) board new-board)
-                                         (any (cut outside-reach? clock <>) new-board)
-                                         clock)))
-    (draw-game new-player (- lives lives-lost) (+ score score-increment) (revive-crepes clock board) clock)
-    (if (dead? lives)
-	score
-	(main-loop new-player
-		   (- lives lives-lost)
-		   (+ score score-increment)
-		   (revive-crepes clock new-board)))))
+  (let ((clock (get-ticks)))
+    (draw-game player lives score board clock)
+    (let* ((direction (get-direction (find symbol? (collect-events!))))
+           (new-player-pos (move-player (player-pos player) direction))
+           (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
+           (score-increment (compute-score board new-board))
+           (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
+           (new-player (compute-new-player player
+                                           new-player-pos
+                                           direction
+                                           (> score-increment 0)
+                                           (any (cut almost-failed? clock <> <>) board new-board)
+                                           (any (cut outside-reach? clock <>) new-board)
+                                           clock)))
+      (if (dead? lives)
+          score
+          (main-loop new-player
+                     (- lives lives-lost)
+                     (+ score score-increment)
+                     (revive-crepes clock new-board))))))
 
 (define ((compute-crepe clock player score times) crepe)
   (let ((state (crepe-state crepe)))
