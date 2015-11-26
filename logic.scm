@@ -22,7 +22,7 @@
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
 
-(define +initial-state+ (make-stick-state unstick: #f time: 1e10))
+(define +initial-state+ (make-stick-state unstick: #f time: (get-ticks)))
 (define +initial-board+ (list (make-crepe column: 0 state: +initial-state+)
                               (make-crepe column: 1 state: +initial-state+)
                               (make-crepe column: 2 state: +initial-state+)
@@ -31,10 +31,10 @@
 
 (define +ascend-speed+ 400)
 
-(define +initial-max-speed+ 1900)
+(define +initial-max-speed+ 1800)
 (define +initial-min-speed+ 2000)
 (define +maximum-speed+ 600)
-(define +minimum-speed-interval+ 500)
+(define +minimum-interval+ 500)
 
 (define +score-increment+ 100)
 
@@ -89,19 +89,18 @@
   (zero? lives))
 
 (define (random-speed times clock score)
-  (let* ((coef (quotient score 4))
-         (min-speed (- +initial-min-speed+ coef))
-         (max-speed (- +initial-max-speed+ coef))
-         (speed (+ (max +maximum-speed+ min-speed)
-                   (random (max +maximum-speed+ (- min-speed max-speed))))))
+  (let* ((coef (quotient score 8))
+         (min-speed (max +maximum-speed+ (- +initial-min-speed+ coef)))
+         (max-speed (max +maximum-speed+ (- +initial-max-speed+ coef)))
+         (speed (+ min-speed (random (- min-speed max-speed)))))
     (let loop ((speed speed)
                (rest times))
       (let ((time (+ clock speed)))
         (if (null? rest)
             speed
             (let* ((t1 (car rest)))
-              (if (> (+ t1 +minimum-speed-interval+) time (- t1 +minimum-speed-interval+))
-                  (loop (+ speed +minimum-speed-interval+) times)
+              (if (> (+ t1 +minimum-interval+) time (- t1 +minimum-interval+))
+                  (loop (+ speed +minimum-interval+) times)
                   (loop speed (cdr rest)))))))))
 
 (define (within-catch-range? clock state)
@@ -115,8 +114,7 @@
          (>= (height clock old-state) 0.85))))
 
 (define (should-fall? score state clock)
-  (or (zero? (random (max 200 (- 500 (quotient score 100)))))
-      (>= clock (+ (stick-state-time state) 1000))))
+  (zero? (random (max 0 (- (+ (stick-state-time state) 1000) clock)))))
 
 (define (revive-crepes clock board)
   (map

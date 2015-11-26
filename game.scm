@@ -148,7 +148,7 @@
              ((and (stick-state? state) (stick-state-unstick state) (>= clock (+ (stick-state-time state) 1000)))
               (make-descend-state time: clock speed: (random-speed times clock score)))
              ((and (ascend-state? state) (>= clock (+ (ascend-state-time state) +ascend-speed+)))
-              (make-stick-state unstick: #f time: (+ clock (random 1000))))
+              (make-stick-state unstick: #f time: clock))
              ((and (descend-state? state)
                    (= player (crepe-column crepe))
                    (within-catch-range? clock state))
