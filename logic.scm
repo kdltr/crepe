@@ -21,18 +21,20 @@
 (define +initial-player+ (make-player pos: 2 direction: 'right body-time: -1000 head-type: 'focus head-time: -1000))
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
-(define +initial-board+ (list (make-crepe column: 0 state: (make-stick-state #f))
-                              (make-crepe column: 1 state: (make-stick-state #f))
-                              (make-crepe column: 2 state: (make-stick-state #f))
-                              (make-crepe column: 3 state: (make-stick-state #f))
-                              (make-crepe column: 4 state: (make-stick-state #f))))
+
+(define +initial-state+ (make-stick-state unstick: #f time: 1e10))
+(define +initial-board+ (list (make-crepe column: 0 state: +initial-state+)
+                              (make-crepe column: 1 state: +initial-state+)
+                              (make-crepe column: 2 state: +initial-state+)
+                              (make-crepe column: 3 state: +initial-state+)
+                              (make-crepe column: 4 state: +initial-state+)))
 
 (define +ascend-speed+ 400)
-(define +maximum-stick-time+ 500)
 
-(define +initial-max-speed+ 1700)
+(define +initial-max-speed+ 1900)
 (define +initial-min-speed+ 2000)
-(define +maximum-speed+ 300)
+(define +maximum-speed+ 600)
+(define +minimum-speed-interval+ 500)
 
 (define +score-increment+ 100)
 
@@ -87,25 +89,23 @@
   (zero? lives))
 
 (define (random-speed times clock score)
-  (let* ((coef (/ score 50))
+  (let* ((coef (quotient score 4))
          (min-speed (- +initial-min-speed+ coef))
          (max-speed (- +initial-max-speed+ coef))
-         (speed (inexact->exact
-                 (round (+ (max +maximum-speed+ min-speed)
-                           (random (inexact->exact (round (- min-speed max-speed)))))))))
+         (speed (+ (max +maximum-speed+ min-speed)
+                   (random (max +maximum-speed+ (- min-speed max-speed))))))
     (let loop ((speed speed)
-               (time (+ clock speed))
-               (times times))
-      (if (null? times)
-          speed
-          (let* ((t1 (car times)))
-            (if (> (+ t1 300) time (- t1 300))
-                (loop (+ speed 300) (+ clock speed 300) (cdr times))
-                (loop speed time (cdr times))))))))
+               (rest times))
+      (let ((time (+ clock speed)))
+        (if (null? rest)
+            speed
+            (let* ((t1 (car rest)))
+              (if (> (+ t1 +minimum-speed-interval+) time (- t1 +minimum-speed-interval+))
+                  (loop (+ speed +minimum-speed-interval+) times)
+                  (loop speed (cdr rest)))))))))
 
-(define (within-catch-range? clock time speed)
-  (let ((height (/ (- clock time) speed)))
-    (> 0.9 height 0.7)))
+(define (within-catch-range? clock state)
+  (> 0.9 (height clock state) 0.65))
 
 (define (almost-failed? clock old-crepe new-crepe)
   (let ((old-state (crepe-state old-crepe))
@@ -114,25 +114,24 @@
          (ascend-state? new-state)
          (>= (height clock old-state) 0.85))))
 
-(define (should-fall?)
-  (= (random +maximum-stick-time+) (sub1 +maximum-stick-time+)))
+(define (should-fall? score state clock)
+  (or (zero? (random (max 200 (- 500 (quotient score 100)))))
+      (>= clock (+ (stick-state-time state) 1000))))
 
 (define (revive-crepes clock board)
   (map
    (lambda (c)
      (if (outside-board? clock c)
-         (update-crepe c state: (make-stick-state #f))
+         (update-crepe c state: (make-stick-state unstick: #f time: clock))
          c))
    board))
 
 (define (compute-score old-board new-board)
   (fold + 0 (map
              (lambda (oc nc)
-               (let ((old-state (crepe-state oc))
-                     (new-state (crepe-state nc)))
-                 (if (and (descend-state? old-state)
-                          (ascend-state? new-state))
-                     +score-increment+
-                     0)))
+               (if (and (descend-state? (crepe-state oc))
+                        (ascend-state? (crepe-state nc)))
+                   +score-increment+
+                   0))
              old-board
              new-board)))

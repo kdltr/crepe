@@ -143,15 +143,15 @@
     (update-crepe
      crepe
      state: (cond
-             ((and (stick-state? state) (not (stick-state-unstick state)) (should-fall?))
+             ((and (stick-state? state) (not (stick-state-unstick state)) (should-fall? score state clock))
               (update-stick-state state unstick: #t time: clock))
              ((and (stick-state? state) (stick-state-unstick state) (>= clock (+ (stick-state-time state) 1000)))
               (make-descend-state time: clock speed: (random-speed times clock score)))
              ((and (ascend-state? state) (>= clock (+ (ascend-state-time state) +ascend-speed+)))
-              (make-stick-state))
+              (make-stick-state unstick: #f time: (+ clock (random 1000))))
              ((and (descend-state? state)
                    (= player (crepe-column crepe))
-                   (within-catch-range? clock (descend-state-time state) (descend-state-speed state)))
+                   (within-catch-range? clock state))
               (make-ascend-state time: clock))
              (else
               state)))))
