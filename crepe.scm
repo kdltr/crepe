@@ -40,7 +40,8 @@
 (define (interpret-event ev)
   (case (event-type ev)
     ((key-down)
-     (keyboard-event-scancode ev))
+     (and (zero? (keyboard-event-repeat ev))
+          (keyboard-event-scancode ev)))
     ((mouse-button-down)
      (list 'button-down
            (mouse-button-event-x ev)
