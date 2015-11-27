@@ -15,7 +15,7 @@
 (define +columns-number+ 5)
 (define +lines-number+ 10)
 
-(define +highest-point+ 135)
+(define +highest-point+ 137)
 (define +lowest-point+ 1080)
 
 (define +initial-player+ (make-player pos: 2 direction: 'right body-time: -1000 head-type: 'focus head-time: -1000))
