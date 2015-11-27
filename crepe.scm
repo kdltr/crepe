@@ -6,6 +6,8 @@
   defstruct
   matchable)
 
+(include "syntax")
+
 (SDL_SetHint "SDL_RENDER_SCALE_QUALITY" "1")
 (set-main-ready!)
 (init!)
@@ -80,41 +82,15 @@
                         #f
                         (if flipped 1 0)))))
 
-(define-syntax file-blob
-  (ir-macro-transformer
-   (lambda (form inject compare)
-     (let ((filename (cadr form)))
-       (with-input-from-file filename
-         (lambda ()
-           (string->blob (read-string))))))))
+(define-resources
+ crepe-down crepe-up crepe-left crepe-right crepe-stick crepe-unstick
 
-(define crepe-down-surface (load-img (file-blob "graph/down.png")))
-(define crepe-up-surface (load-img (file-blob "graph/up.png")))
-(define crepe-left-surface (load-img (file-blob "graph/left.png")))
-(define crepe-right-surface (load-img (file-blob "graph/right.png")))
-(define crepe-stick-surface (load-img (file-blob "graph/sticky-full.png")))
-(define crepe-unstick-surface (load-img (file-blob "graph/unstick.png")))
+ background font score-text lives-text heart
 
-(define background-surface (load-img (file-blob "graph/background.png")))
-(define font-surface (load-img (file-blob "graph/font.png")))
-(define score-text-surface (load-img (file-blob "graph/score-text.png")))
-(define lives-text-surface (load-img (file-blob "graph/lives-text.png")))
-(define heart-surface (load-img (file-blob "graph/coeur.png")))
+ body-low body-high head-focus head-happy head-sad
 
-(define body-low-surface (load-img (file-blob "graph/body-low.png")))
-(define body-high-surface (load-img (file-blob "graph/body-high.png")))
-(define head-focus-surface (load-img (file-blob "graph/head-focus.png")))
-(define head-happy-surface (load-img (file-blob "graph/head-happy.png")))
-(define head-sad-surface (load-img (file-blob "graph/head-sad.png")))
-
-(define board-surface (load-img (file-blob "graph/board.png")))
-(define pins-surface (load-img (file-blob "graph/pins.png")))
-(define button-on-surface (load-img (file-blob "graph/button-on.png")))
-(define button-off-surface (load-img (file-blob "graph/button-off.png")))
-(define play-text-surface (load-img (file-blob "graph/play-text.png")))
-(define quit-text-surface (load-img (file-blob "graph/quit-text.png")))
-(define button-credits-surface (load-img (file-blob "graph/button-credits.png")))
-(define credits-surface (load-img (file-blob "graph/credits.png")))
+ board pins button-on button-off play-text quit-text
+ button-credits credits)
 
 (include "game")
 (include "menu")
