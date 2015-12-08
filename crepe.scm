@@ -96,7 +96,7 @@
  button-credits credits)
 
 (define launched-sound
-  (mix:load-wav "launched.wav"))
+  (mix:load-wav "assets/sounds/launched.wav"))
 
 (assert (##sys#slot launched-sound 2))
 

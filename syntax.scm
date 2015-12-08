@@ -13,6 +13,6 @@
                 (lambda (res)
                   (let ((res (inject res)))
                     `(define ,(symbol-append res '-surface)
-                       (load-img (file-blob ,(string-append "graph/" (symbol->string res) ".png"))))))
+                       (load-img (file-blob ,(string-append "assets/graphics/" (symbol->string res) ".png"))))))
                 (cdr form))))))
 
