@@ -106,12 +106,15 @@
 (define (within-catch-range? clock state)
   (> 0.9 (height clock state) 0.65))
 
-(define (almost-failed? clock old-crepe new-crepe)
+(define (launched-crepe? old-crepe new-crepe)
   (let ((old-state (crepe-state old-crepe))
         (new-state (crepe-state new-crepe)))
     (and (descend-state? old-state)
-         (ascend-state? new-state)
-         (>= (height clock old-state) 0.85))))
+         (ascend-state? new-state))))
+
+(define (almost-failed? clock old-crepe new-crepe)
+  (and (launched-crepe? old-crepe new-crepe)
+       (>= (height clock (crepe-state old-crepe)) 0.85)))
 
 (define (should-fall? score state clock)
   (zero? (random (max 0 (- (+ (stick-state-time state) 1000) clock)))))
