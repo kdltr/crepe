@@ -56,7 +56,7 @@
                    (- (quotient (sprite-h button-on-surface) 2)
                       (quotient (sprite-h text) 2)))))
 
-(define (draw-menu-graphics x y score)
+(define (draw-menu-graphics! x y score)
   (show-sprite! background-surface 0 0)
   (show-sprite! board-surface board-x board-y)
   (draw-button! x y play-button play-text-surface)
@@ -64,11 +64,11 @@
   (show-sprite! button-credits-surface
                 (rect-x credits-button)
                 (rect-y credits-button))
-  (draw-score score)
+  (draw-score! score)
   (SDL_RenderPresent renderer))
 
 (define (menu-main-loop x y score)
-  (draw-menu-graphics x y score)
+  (draw-menu-graphics! x y score)
   (let* ((event (find list? (collect-events!)))
          (type (and event (first event)))
          (new-x (and event (second event)))

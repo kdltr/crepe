@@ -5,7 +5,7 @@
 (define +line-space+ (quotient +height+ +lines-number+))
 
 
-(define (draw-player player clock)
+(define (draw-player! player clock)
   (let* ((body (if (<= clock (+ 250 (player-body-time player)))
                    body-high-surface
                    body-low-surface))
@@ -33,7 +33,7 @@
       ((> 0.4 wiggle -0.4) crepe-down-surface)
       ((> wiggle 0.4) crepe-right-surface)))))
 
-(define ((draw-crepe clock) crepe)
+(define ((draw-crepe! clock) crepe)
   (let* ((state (crepe-state crepe))
          (column (crepe-column crepe))
          (speed (match state (($ descend-state speed) speed) (else +ascend-speed+)))
@@ -55,7 +55,7 @@
 
 (define char-width (quotient (sprite-w font-surface) 10))
 
-(define draw-score
+(define draw-score!
   (let ((r1 (make-rect 0 0 char-width (sprite-h font-surface)))
         (r2 (make-rect 0 5 char-width (sprite-h font-surface))))
     (lambda (score)
@@ -78,7 +78,7 @@
 (define (draw-score-text!)
   (show-sprite! score-text-surface 0 5))
 
-(define (draw-lives lives)
+(define (draw-lives! lives)
   (let ((orig-x (- +width+
                    (sprite-w lives-text-surface)
                    (* +initial-lives+ (sprite-w heart-surface))
@@ -91,12 +91,12 @@
           (show-sprite! heart-surface x 5)
           (loop (sub1 n) (+ x (sprite-w heart-surface))))))))
 
-(define (draw-game player lives score board clock)
+(define (draw-game! player lives score board clock)
   (show-sprite! background-surface 0 0)
-  (draw-player player clock)
-  (for-each (draw-crepe clock) board)
-  (draw-score score)
-  (draw-lives lives)
+  (draw-player! player clock)
+  (for-each (draw-crepe! clock) board)
+  (draw-score! score)
+  (draw-lives! lives)
   (SDL_RenderPresent renderer))
 
 (define (start-game)
