@@ -22,12 +22,12 @@
 (define +initial-lives+ 3)
 (define +initial-score+ 0)
 
-(define +initial-state+ (make-stick-state unstick: #f time: (get-ticks)))
-(define +initial-board+ (list (make-crepe column: 0 state: +initial-state+)
-                              (make-crepe column: 1 state: +initial-state+)
-                              (make-crepe column: 2 state: +initial-state+)
-                              (make-crepe column: 3 state: +initial-state+)
-                              (make-crepe column: 4 state: +initial-state+)))
+(define (initial-state) (make-stick-state unstick: #f time: (+ (get-ticks) (random 3000))))
+(define +initial-board+ (list (make-crepe column: 0 state: (initial-state))
+                              (make-crepe column: 1 state: (initial-state))
+                              (make-crepe column: 2 state: (initial-state))
+                              (make-crepe column: 3 state: (initial-state))
+                              (make-crepe column: 4 state: (initial-state))))
 
 (define +ascend-speed+ 400)
 
@@ -117,7 +117,7 @@
        (>= (height clock (crepe-state old-crepe)) 0.85)))
 
 (define (should-fall? score state clock)
-  (zero? (random (max 0 (- (+ (stick-state-time state) 1000) clock)))))
+  (>= clock (stick-state-time state)))
 
 (define (revive-crepes clock board)
   (map
