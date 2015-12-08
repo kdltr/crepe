@@ -99,11 +99,21 @@
   (draw-lives! lives)
   (SDL_RenderPresent renderer))
 
+(define (present-sounds! old-board board)
+  (let ((launched (any launched-crepe? old-board board)))
+    (when launched (mix:play-channel! -1 launched-sound 0))))
+
+(define (present-game! player lives score board old-board clock)
+  (present-sounds! old-board board)
+  (draw-game! player lives score board clock))
+
+
 (define (start-game)
   (main-loop +initial-player+
 	     +initial-lives+
 	     +initial-score+
-	     +initial-board+))
+	     +initial-board+
+             +initial-board+))
 
 (define (keydown-event? ev)
   (eq? (event-type ev) 'key-down))
@@ -116,9 +126,9 @@
         (else 'stay))
       'stay))
 
-(define (main-loop player lives score board)
+(define (main-loop player lives score board old-board)
   (let ((clock (get-ticks)))
-    (draw-game player lives score board clock)
+    (present-game! player lives score board old-board clock)
     (let* ((direction (get-direction (find symbol? (collect-events!))))
            (new-player-pos (move-player (player-pos player) direction))
            (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
@@ -136,7 +146,8 @@
           (main-loop new-player
                      (- lives lives-lost)
                      (+ score score-increment)
-                     (revive-crepes clock new-board))))))
+                     (revive-crepes clock new-board)
+                     board)))))
 
 (define ((compute-crepe clock player score times) crepe)
   (let ((state (crepe-state crepe)))

@@ -3,6 +3,7 @@
   sdl2
   sdl2-internals
   (prefix sdl2-image img:)
+  (prefix sdl2-mixer mix:)
   defstruct
   matchable)
 
@@ -11,6 +12,8 @@
 (SDL_SetHint "SDL_RENDER_SCALE_QUALITY" "1")
 (set-main-ready!)
 (init!)
+(mix:init!)
+(mix:open-audio!)
 (assert (member 'png (img:init! '(png))))
 
 (define dm (make-display-mode))
@@ -91,6 +94,11 @@
 
  board pins button-on button-off play-text quit-text
  button-credits credits)
+
+(define launched-sound
+  (mix:load-wav "launched.wav"))
+
+(assert (##sys#slot launched-sound 2))
 
 (include "game")
 (include "menu")
