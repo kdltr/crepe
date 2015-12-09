@@ -106,15 +106,31 @@
 (define (within-catch-range? clock state)
   (> 0.9 (height clock state) 0.65))
 
-(define (launched-crepe? old-crepe new-crepe)
-  (let ((old-state (crepe-state old-crepe))
-        (new-state (crepe-state new-crepe)))
+(define (launched-crepe? old new)
+  (let ((old-state (crepe-state old))
+        (new-state (crepe-state new)))
     (and (descend-state? old-state)
          (ascend-state? new-state))))
 
-(define (almost-failed? clock old-crepe new-crepe)
-  (and (launched-crepe? old-crepe new-crepe)
-       (>= (height clock (crepe-state old-crepe)) 0.85)))
+(define (almost-failed? clock old new)
+  (and (launched-crepe? old new)
+       (>= (height clock (crepe-state old)) 0.85)))
+
+(define (became-sticky? old new)
+  (and (ascend-state? (crepe-state old))
+       (stick-state? (crepe-state new))))
+
+(define (became-unsticky? old new)
+  (let ((os (crepe-state old))
+        (ns (crepe-state new)))
+    (and (stick-state? os)
+         (stick-state? ns)
+         (not (stick-state-unstick os))
+         (stick-state-unstick ns))))
+
+(define (fell? old new)
+  (and (descend-state? (crepe-state old))
+       (stick-state? (crepe-state new))))
 
 (define (should-fall? score state clock)
   (>= clock (stick-state-time state)))

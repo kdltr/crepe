@@ -99,12 +99,18 @@
   (draw-lives! lives)
   (SDL_RenderPresent renderer))
 
-(define (present-sounds! old-board board)
-  (let ((launched (any launched-crepe? old-board board)))
-    (when launched (mix:play-channel! -1 launched-sound 0))))
+(define (present-sounds! clock old-board board)
+  (let* ((almost-failed (any (cut almost-failed? clock <> <>) old-board board))
+         (launched (and (not almost-failed)
+                        (any launched-crepe? old-board board)))
+         (sticked (any became-sticky? old-board board))
+         (unsticked (any became-unsticky? old-board board))
+         (fell (any fell? old-board board)))
+    (when launched
+      (mix:play-channel! 0 launched-sound 0))))
 
 (define (present-game! player lives score board old-board clock)
-  (present-sounds! old-board board)
+  (present-sounds! clock old-board board)
   (draw-game! player lives score board clock))
 
 
