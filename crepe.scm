@@ -85,6 +85,13 @@
                         #f
                         (if flipped 1 0)))))
 
+(defstruct sound channel chunk)
+
+(define (fire-sound! sound)
+  (mix:play-channel! (sound-channel sound)
+                     (sound-chunk sound)
+                     0))
+
 (define-resources
  crepe-down crepe-up crepe-left crepe-right crepe-stick crepe-unstick
 
@@ -96,7 +103,10 @@
  button-credits credits)
 
 (define launched-sound
-  (mix:load-wav "assets/sounds/launched.wav"))
+  (let ((chunk (mix:load-wav "assets/sounds/launched.wav")))
+    (assert chunk)
+    (make-sound chunk: chunk channel: 0)))
+
 
 (assert (##sys#slot launched-sound 2))
 

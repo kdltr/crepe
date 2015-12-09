@@ -106,8 +106,7 @@
          (sticked (any became-sticky? old-board board))
          (unsticked (any became-unsticky? old-board board))
          (fell (any fell? old-board board)))
-    (when launched
-      (mix:play-channel! 0 launched-sound 0))))
+    (when launched (fire-sound! launched-sound))))
 
 (define (present-game! player lives score board old-board clock)
   (present-sounds! clock old-board board)
