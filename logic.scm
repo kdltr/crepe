@@ -23,7 +23,7 @@
 (define +initial-score+ 0)
 
 (define (initial-state) (make-stick-state unstick: #f time: (+ (get-ticks) (random 3000))))
-(define +initial-board+ (list (make-crepe column: 0 state: (initial-state))
+(define (initial-board) (list (make-crepe column: 0 state: (initial-state))
                               (make-crepe column: 1 state: (initial-state))
                               (make-crepe column: 2 state: (initial-state))
                               (make-crepe column: 3 state: (initial-state))
@@ -89,19 +89,19 @@
   (zero? lives))
 
 (define (random-speed times clock score)
-  (let* ((coef (quotient score 8))
+  (let* ((coef (quotient score 10))
          (min-speed (max +maximum-speed+ (- +initial-min-speed+ coef)))
          (max-speed (max +maximum-speed+ (- +initial-max-speed+ coef)))
+         (min-date (apply min times))
          (speed (+ min-speed (random (- min-speed max-speed)))))
     (let loop ((speed speed)
                (rest times))
-      (let ((time (+ clock speed)))
-        (if (null? rest)
-            speed
-            (let* ((t1 (car rest)))
-              (if (> (+ t1 +minimum-interval+) time (- t1 +minimum-interval+))
-                  (loop (+ speed +minimum-interval+) times)
-                  (loop speed (cdr rest)))))))))
+      (cond ((null? rest)
+             speed)
+            ((> (+ (car rest) +minimum-interval+) (+ clock speed) min-date)
+             (loop (+ speed 100) times))
+            (else
+             (loop speed (cdr rest)))))))
 
 (define (within-catch-range? clock state)
   (> 0.9 (height clock state) 0.65))

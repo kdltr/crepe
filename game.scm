@@ -114,11 +114,12 @@
 
 
 (define (start-game)
-  (main-loop +initial-player+
-	     +initial-lives+
-	     +initial-score+
-	     +initial-board+
-             +initial-board+))
+  (let ((board (initial-board)))
+    (main-loop +initial-player+
+               +initial-lives+
+               +initial-score+
+               board
+               board)))
 
 (define (keydown-event? ev)
   (eq? (event-type ev) 'key-down))
@@ -165,7 +166,7 @@
               (make-descend-state time: clock speed: (random-speed times clock score)))
              ((and (ascend-state? state) (>= clock (+ (ascend-state-time state) +ascend-speed+)))
               (make-stick-state unstick: #f
-                                time: (+ clock (random (- 2000 (/ score 10))))))
+                                time: (+ clock (random 2000))))
              ((and (descend-state? state)
                    (= player (crepe-column crepe))
                    (within-catch-range? clock state))
