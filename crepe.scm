@@ -107,9 +107,6 @@
     (assert chunk)
     (make-sound chunk: chunk channel: 0)))
 
-
-(assert (##sys#slot launched-sound 2))
-
 (include "game")
 (include "menu")
 
