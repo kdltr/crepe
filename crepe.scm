@@ -59,6 +59,7 @@
      #f)))
 
 (defstruct sprite w h texture)
+(defstruct sound channel chunk)
 
 (define (load-img blob)
   (let* ((evicted-blob (object-evict blob))
@@ -69,6 +70,12 @@
     (make-sprite w: (surface-w surface)
                  h: (surface-h surface)
                  texture: texture)))
+
+(define (load-snd blob)
+  (let* ((evicted-blob (object-evict blob))
+         (rw (rw-from-blob evicted-blob))
+         (chunk (mix:load-wav-rw rw #t)))
+    (make-sound channel: -1 chunk: chunk)))
 
 (define show-sprite!
   (let ((rect (make-rect)))
@@ -85,8 +92,6 @@
                         #f
                         (if flipped 1 0)))))
 
-(defstruct sound channel chunk)
-
 (define (fire-sound! sound)
   (mix:play-channel! (sound-channel sound)
                      (sound-chunk sound)
@@ -102,10 +107,8 @@
  board pins button-on button-off play-text quit-text
  button-credits credits)
 
-(define launched-sound
-  (let ((chunk (mix:load-wav "assets/sounds/launched.wav")))
-    (assert chunk)
-    (make-sound chunk: chunk channel: 0)))
+(define-sounds
+  launched)
 
 (include "game")
 (include "menu")

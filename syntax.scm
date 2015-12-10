@@ -16,3 +16,12 @@
                        (load-img (file-blob ,(string-append "assets/graphics/" (symbol->string res) ".png"))))))
                 (cdr form))))))
 
+(define-syntax define-sounds
+  (ir-macro-transformer
+   (lambda (form inject compare)
+     `(begin ,@(map
+                (lambda (snd)
+                  (let ((snd (inject snd)))
+                    `(define ,(symbol-append snd '-sound)
+                       (load-snd (file-blob ,(string-append "assets/sounds/" (symbol->string snd) ".wav"))))))
+                (cdr form))))))
