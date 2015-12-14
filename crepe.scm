@@ -112,6 +112,8 @@
 
 (define-sound hit)
 (define-sound stick)
+(define-sound fell)
+(define-sound almost)
 
 (include "game")
 (include "menu")

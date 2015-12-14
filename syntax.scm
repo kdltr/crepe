@@ -18,17 +18,14 @@
                        (load-img (file-blob ,(string-append "assets/graphics/" (symbol->string res) ".png"))))))
                 (cdr form))))))
 
-
-(define-for-syntax channel -1)
 (define-syntax define-sound
   (ir-macro-transformer
    (lambda (form inject compare)
-     (set! channel (add1 channel))
      (let* ((sound-name (inject (cadr form)))
             (var-name (inject (symbol-append sound-name '-sound)))
             (files (glob (string-append "assets/sounds/" (symbol->string sound-name) "-*.wav"))))
        `(define ,var-name
-          (make-sound channel: ,channel
+          (make-sound channel: -1
                       chunks: (vector
                                ,@(map
                                   (lambda (file) `(load-snd (file-blob ,file)))
