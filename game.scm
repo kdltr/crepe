@@ -101,12 +101,15 @@
 
 (define (present-sounds! clock old-board board)
   (let* ((almost-failed (any (cut almost-failed? clock <> <>) old-board board))
-         (launched (and (not almost-failed)
+         (hit (and (not almost-failed)
                         (any launched-crepe? old-board board)))
          (sticked (any became-sticky? old-board board))
-         (unsticked (any became-unsticky? old-board board))
          (fell (any fell? old-board board)))
-    (when launched (fire-sound! launched-sound))))
+    ;; (when almost-failed (fire-sound! almost-sound))
+    (when hit (fire-sound! hit-sound))
+    (when sticked (fire-sound! stick-sound))
+    ;; (when fell (fire-sound! fell-sound))
+    ))
 
 (define (present-game! player lives score board old-board clock)
   (present-sounds! clock old-board board)
