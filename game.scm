@@ -107,8 +107,7 @@
     (when almost-failed (fire-sound! almost-sound))
     (when hit (fire-sound! hit-sound))
     (when sticked (fire-sound! stick-sound))
-    (when fell (fire-sound! fell-sound))
-    ))
+    (when fell (fire-sound! fell-sound))))
 
 (define (present-game! player lives score board old-board clock)
   (present-sounds! clock old-board board)
