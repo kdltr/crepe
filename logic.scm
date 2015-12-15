@@ -143,12 +143,11 @@
          c))
    board))
 
-(define (compute-score old-board new-board)
+(define (compute-score old-board new-board clock)
   (fold + 0 (map
              (lambda (oc nc)
-               (if (and (descend-state? (crepe-state oc))
-                        (ascend-state? (crepe-state nc)))
-                   +score-increment+
-                   0))
+               (* +score-increment+
+                  (+ (if (launched-crepe? oc nc) 1 0)
+                     (if (almost-failed? clock oc nc) 1 0))))
              old-board
              new-board)))

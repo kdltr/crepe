@@ -140,7 +140,7 @@
     (let* ((direction (get-direction (find symbol? (collect-events!))))
            (new-player-pos (move-player (player-pos player) direction))
            (new-board (map (compute-crepe clock new-player-pos score (final-times board)) board))
-           (score-increment (compute-score board new-board))
+           (score-increment (compute-score board new-board clock))
            (lives-lost (count (lambda (c) (outside-board? clock c)) new-board))
            (new-player (compute-new-player player
                                            new-player-pos
