@@ -40,14 +40,15 @@
        (< x (+ (rect-x rect) (rect-w rect)))
        (< y (+ (rect-y rect) (rect-h rect)))))
 
-(define (draw-button! x y rect text)
+(define (draw-button! x y rect text flipped)
   (show-sprite! (if (inside-rect? rect x y) button-on-surface button-off-surface)
                 (rect-x rect) (rect-y rect))
   (show-sprite! pins-surface
                 (- (rect-x rect)
                    (- (quotient (sprite-w pins-surface) 2)
                       (quotient (sprite-w button-on-surface) 2)))
-                (- (rect-y rect) (quotient (sprite-h pins-surface) 2)))
+                (- (rect-y rect) (quotient (sprite-h pins-surface) 2))
+                flipped: flipped)
   (show-sprite! text
                 (+ (rect-x rect)
                    (- (quotient (sprite-w button-on-surface) 2)
@@ -59,8 +60,8 @@
 (define (draw-menu-graphics! x y score)
   (show-sprite! background-surface 0 0)
   (show-sprite! board-surface board-x board-y)
-  (draw-button! x y play-button play-text-surface)
-  (draw-button! x y quit-button quit-text-surface)
+  (draw-button! x y play-button play-text-surface #f)
+  (draw-button! x y quit-button quit-text-surface #t)
   (show-sprite! button-credits-surface
                 (rect-x credits-button)
                 (rect-y credits-button))
