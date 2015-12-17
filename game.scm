@@ -115,12 +115,15 @@
 
 
 (define (start-game)
-  (let ((board (initial-board)))
-    (main-loop +initial-player+
-               +initial-lives+
-               +initial-score+
-               board
-               board)))
+  (fire-sound! game-music-sound -1)
+  (let* ((board (initial-board))
+         (score (main-loop +initial-player+
+                           +initial-lives+
+                           +initial-score+
+                           board
+                           board)))
+    (fire-sound! menu-music-sound -1)
+    score))
 
 (define (keydown-event? ev)
   (eq? (event-type ev) 'key-down))

@@ -25,8 +25,9 @@
 (define win (create-window! "Crepes-party-hard-yolo-swag 2015"
                             'undefined 'undefined
                             (display-mode-w dm)
-                            (* (quotient (display-mode-w dm) 16) 9)
-                            '()))
+                            (display-mode-h dm)
+                            ;; (* (quotient (display-mode-w dm) 16) 9)
+                            '(fullscreen)))
 
 (define renderer
   (SDL_CreateRenderer win -1 6))
@@ -93,12 +94,12 @@
                         #f
                         (if flipped 1 0)))))
 
-(define (fire-sound! sound)
+(define (fire-sound! sound #!optional (loop 0))
   (let* ((chunks (sound-chunks sound))
          (len (vector-length chunks)))
    (mix:play-channel! (sound-channel sound)
                       (vector-ref chunks (random len))
-                      0)))
+                      loop)))
 
 (define-resources
  crepe-down crepe-up crepe-left crepe-right crepe-stick crepe-unstick
@@ -114,8 +115,11 @@
 (define-sound stick)
 (define-sound fell)
 (define-sound almost)
+(define-sound game-music 0)
+(define-sound menu-music 0)
+(define-sound credits-music 0)
 
 (include "game")
 (include "menu")
 
-(menu-main-loop 0 0 0)
+(start-menu)

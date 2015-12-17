@@ -79,10 +79,14 @@
               (let ((score (or (and (inside-rect? play-button x y) (start-game))
                                score)))
                 (when (inside-rect? quit-button x y) (exit 0))
-                (when (inside-rect? credits-button x y) (credits-main-loop))
+                (when (inside-rect? credits-button x y) (start-credits))
                 (menu-main-loop x y score)))
           (menu-main-loop x y score))
         (menu-main-loop x y score))))
+
+(define (start-menu)
+  (fire-sound! menu-music-sound -1)
+  (menu-main-loop 0 0 0))
 
 (define (draw-credits!)
   (show-sprite! background-surface 0 0)
@@ -98,3 +102,8 @@
     (unless (and (eq? type 'button-down)
                  (inside-rect? board x y))
       (credits-main-loop))))
+
+(define (start-credits)
+  (fire-sound! credits-music-sound)
+  (credits-main-loop)
+  (fire-sound! menu-music-sound -1))

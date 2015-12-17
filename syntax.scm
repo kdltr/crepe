@@ -22,10 +22,11 @@
   (ir-macro-transformer
    (lambda (form inject compare)
      (let* ((sound-name (inject (cadr form)))
+            (channel (or (and (pair? (cddr form)) (caddr form)) -1))
             (var-name (inject (symbol-append sound-name '-sound)))
-            (files (glob (string-append "assets/sounds/" (symbol->string sound-name) "-*.wav"))))
+            (files (glob (string-append "assets/sounds/" (symbol->string sound-name) "-*.ogg"))))
        `(define ,var-name
-          (make-sound channel: -1
+          (make-sound channel: ,channel
                       chunks: (vector
                                ,@(map
                                   (lambda (file) `(load-snd (file-blob ,file)))
