@@ -1,0 +1,21 @@
+REPO != csi -p '(repository-path)'
+
+DEPS = ${REPO}/defstruct.o ${REPO}/matchable.o ${REPO}/sdl2.o ${REPO}/sdl2-internals.o ${REPO}/sdl2-image.o ${REPO}/sdl2-mixer.o
+
+CSCFLAGS = -O3 -d0 -disable-interrupts
+
+SDLCFLAGS = 
+SDLLDFLAGS = -Wl,-rpath -Wl,@loader_path/../Frameworks -framework SDL2 -framework SDL2_mixer -framework SDL2_image
+
+CFLAGS = ${SDLCFLAGS} 
+LDFLAGS = ${SDLLDFLAGS}
+
+crepe: crepe.scm game.scm menu.scm logic.scm ${DEPS}
+	csc crepe.scm -static-libs -O5 -strip -uses sdl2 -uses sdl2-internals -uses sdl2-image -uses sdl2-mixer -uses defstruct -uses matchable ${DEPS} ${LDFLAGS}
+
+${DEPS}:
+	@echo "You have to install the dependencies!"
+	@exit 1
+
+clean:
+	rm -f crepe
