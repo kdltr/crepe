@@ -4,7 +4,7 @@
 ;; player: integer (number of the column)
 ;; lives: integer
 
-(defstruct crepe column line state speed last-time)
+(defstruct crepe column state)
 
 (defstruct player pos direction body-time head-type head-time)
 
