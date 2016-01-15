@@ -1,0 +1,8 @@
+To run this game you need to install the SDL2 library as well as
+Cairo if you wish to run previous versions of it.
+
+You will also need a recent version of CHICKEN 4.
+
+You will also need the Scheme dependencies, which can be automatically
+installed by running the install-dependencies.sh script. You will need
+the git and sudo programs for that.
